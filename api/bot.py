@@ -1,11 +1,16 @@
 import os
 import asyncio
 import uuid
+import nest_asyncio  # নতুন লাইন: nest_asyncio ইম্পোর্ট করুন
 from flask import Flask, request
 from telegram import Update, Bot, InlineKeyboardButton, InlineKeyboardMarkup
 from supabase import create_client, Client
 from datetime import datetime, timedelta, timezone
 from dateutil.parser import parse
+
+# nest_asyncio সক্রিয় করুন। এটি অবশ্যই সবকিছুর শুরুতে করতে হবে।
+nest_asyncio.apply()
+
 
 # --- ধাপ ১: এনভায়রনমেন্ট ভেরিয়েবল ---
 TOKEN = os.environ.get("TELEGRAM_TOKEN")
