@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
             remaining--;
         }, 1000);
     }
-
+    
     // ক্লেইম বাটনে ক্লিকের জন্য ইভেন্ট লিসেনার
     claimButton.addEventListener('click', () => {
         claimButton.disabled = true;
@@ -92,3 +92,4 @@ document.addEventListener('DOMContentLoaded', () => {
         tg.sendData(JSON.stringify({ action: 'claim_from_mini_app' }));
     });
 });
+
