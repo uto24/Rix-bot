@@ -8,20 +8,15 @@ from datetime import datetime, timedelta, timezone
 from dateutil.parser import parse
 
 # --- ধাপ ১: এনভায়রনমেন্ট ভেরিয়েবল থেকে প্রয়োজনীয় তথ্য লোড করুন ---
-# এই তথ্যগুলো আপনি Vercel ড্যাশবোর্ডে সেট করবেন
 TOKEN = os.environ.get("TELEGRAM_TOKEN")
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
-VERCEL_URL = os.environ.get("VERCEL_URL") # Vercel নিজে থেকেই এটি যোগ করে
+VERCEL_URL = os.environ.get("VERCEL_URL")
 
 # --- ধাপ ২: বট এবং অন্যান্য ক্লায়েন্ট ইনিশিয়ালাইজ করুন ---
 # Vercel-এ "Pool timeout" এরর সমাধানের জন্য timeout যুক্ত করা হয়েছে
 bot = Bot(token=TOKEN, connect_timeout=10.0, read_timeout=10.0)
-
-# Supabase ক্লায়েন্ট
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-# Flask ওয়েব অ্যাপ
 app = Flask(__name__)
 
 # --- ধাপ ৩: গেমের নিয়ম এবং কনস্ট্যান্টস ---
@@ -67,31 +62,25 @@ async def handle_update(update_data):
         chat_id = update.message.chat_id
         text = update.message.text
         
-        # শুধুমাত্র /start কমান্ডের জন্য কাজ করবে
         if text.startswith('/start'):
             command_parts = text.split()
             referrer_id = None
             
-            # রেফারেল কোড আছে কিনা চেক করা
             if len(command_parts) > 1:
                 referral_code = command_parts[1]
                 referrer_data = supabase.table('users').select('user_id').eq('referral_code', referral_code).single().execute()
                 if referrer_data.data:
                     referrer_id = referrer_data.data['user_id']
             
-            # ব্যবহারকারী আগে থেকেই ডাটাবেসে আছে কিনা চেক করা
             existing_user = supabase.table('users').select('user_id').eq('user_id', user.id).single().execute()
 
             if not existing_user.data:
-                # নতুন ব্যবহারকারীকে ডাটাবেসে যোগ করা
                 initial_balance = NEW_USER_BONUS
                 
-                # যদি রেফারার থাকে, তাকে বোনাস পাঠানো
                 if referrer_id and referrer_id != user.id:
                     update_rix_balance(referrer_id, REFERRAL_BONUS)
                     await bot.send_message(chat_id=referrer_id, text=f"🎉 অভিনন্দন! {user.first_name} আপনার রেফারেলে যোগ দিয়েছেন। আপনি {REFERRAL_BONUS} RiX বোনাস পেয়েছেন!")
                 
-                # নতুন ব্যবহারকারীর তথ্য সেভ করা
                 supabase.table('users').insert({
                     'user_id': user.id, 'first_name': user.first_name, 
                     'referral_code': generate_referral_code(), 'rix_balance': initial_balance,
@@ -102,18 +91,16 @@ async def handle_update(update_data):
             else:
                 welcome_message = f"ফিরে আসার জন্য ধন্যবাদ, {user.first_name}!"
             
-            # ব্যবহারকারীকে মেনু পাঠানো
             await bot.send_message(chat_id=chat_id, text=welcome_message, reply_markup=get_main_menu_keyboard())
 
     # যখন কোনো ইনলাইন বাটন ক্লিক করা হয়
     elif update.callback_query:
         query = update.callback_query
         user_id = query.from_user.id
-        await query.answer()  # ব্যবহারকারীকে জানাতে যে ক্লিকটি গৃহীত হয়েছে
+        await query.answer()
         
         back_button = [InlineKeyboardButton("⬅️ মেনুতে ফিরুন", callback_data="back_to_menu")]
 
-        # কোন বাটন ক্লিক করা হয়েছে তা চেক করা
         if query.data == "check_balance":
             user_data = supabase.table('users').select('rix_balance').eq('user_id', user_id).single().execute()
             balance = user_data.data.get('rix_balance', 0) if user_data.data else 0
@@ -166,20 +153,37 @@ async def handle_update(update_data):
         elif query.data == "back_to_menu":
             await query.edit_message_text(text="প্রধান মেনু:", reply_markup=get_main_menu_keyboard())
 
-# --- ধাপ ৬: Vercel এর জন্য ওয়েব সার্ভার তৈরি ---
+# --- ধাপ ৬: Vercel এর জন্য ওয়েব সার্ভার তৈরি (আরও নির্ভরযোগ্য) ---
 
 # এই রাউটটি টেলিগ্রাম থেকে সমস্ত রিকোয়েস্ট গ্রহণ করবে
 @app.route('/', methods=['POST'])
 def webhook_handler():
-    # Vercel-এর serverless পরিবেশে asyncio ইভেন্ট লুপ চালানোর সঠিক উপায়
-    asyncio.run(handle_update(request.json))
+    """টেলিগ্রাম থেকে আসা POST রিকোয়েস্ট হ্যান্ডেল করে।"""
+    try:
+        asyncio.run(handle_update(request.json))
+    except Exception as e:
+        print(f"Error in webhook_handler: {e}")
     return 'ok'
 
 # এই রাউটটি শুধুমাত্র একবার ব্যবহার করা হবে বট চালু করার জন্য
 @app.route('/setwebhook', methods=['GET'])
-def set_webhook():
-    webhook_url = f"https://{VERCEL_URL}/"
-    is_set = asyncio.run(bot.set_webhook(url=webhook_url))
-    if is_set:
-        return "Webhook সফলভাবে সেট করা হয়েছে!"
-    return "Webhook সেট করতে ব্যর্থ।"
+def set_webhook_route():
+    """বটের জন্য Webhook সেট করে।"""
+    try:
+        # VERCEL_URL ভেরিয়েবলটি আছে কিনা এবং ঠিক আছে কিনা তা নিশ্চিত করুন
+        if not VERCEL_URL:
+            return "Error: VERCEL_URL environment variable is not set.", 500
+        
+        webhook_url = f"https://{VERCEL_URL}/"
+        
+        # async ফাংশনটিকে একটি নতুন ইভেন্ট লুপে রান করুন
+        is_set = asyncio.run(bot.set_webhook(url=webhook_url, allowed_updates=['message', 'callback_query']))
+        
+        if is_set:
+            return "Webhook সফলভাবে সেট করা হয়েছে!"
+        else:
+            return "Webhook সেট করতে ব্যর্থ। টেলিগ্রাম API থেকে কোনো উত্তর আসেনি।", 500
+    except Exception as e:
+        # যেকোনো এররের বিস্তারিত লগ করুন এবং একটি তথ্যপূর্ণ উত্তর দিন
+        print(f"CRITICAL Error in set_webhook_route: {e}")
+        return f"An internal error occurred while setting the webhook: {e}", 500
