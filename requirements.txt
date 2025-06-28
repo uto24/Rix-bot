@@ -2,3 +2,4 @@ python-telegram-bot
 flask
 supabase
 python-dateutil
+nest_asyncio
