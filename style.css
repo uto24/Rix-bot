@@ -1,0 +1,73 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background-color: var(--tg-theme-bg-color, #f0f2f5);
+    color: var(--tg-theme-text-color, #000);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+.container {
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.coin-icon {
+    width: 40px;
+    height: 40px;
+}
+
+.balance-card, .mining-card {
+    background-color: var(--tg-theme-secondary-bg-color, #fff);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+h1, h2 {
+    margin-top: 0;
+}
+
+#balance-amount {
+    font-size: 2em;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.btn {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: var(--tg-theme-button-color, #007bff);
+    color: var(--tg-theme-button-text-color, #fff);
+    transition: background-color 0.2s;
+}
+
+.btn:disabled {
+    background-color: #a9cce3;
+    cursor: not-allowed;
+}
+
+#countdown-timer {
+    margin-top: 15px;
+    font-size: 1.1em;
+    font-weight: 500;
+}
