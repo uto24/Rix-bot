@@ -11,7 +11,6 @@ from dateutil.parser import parse
 # nest_asyncio সক্রিয় করুন। এটি অবশ্যই সবকিছুর শুরুতে করতে হবে।
 nest_asyncio.apply()
 
-
 # --- ধাপ ১: এনভায়রনমেন্ট ভেরিয়েবল ---
 TOKEN = os.environ.get("TELEGRAM_TOKEN")
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
