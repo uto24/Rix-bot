@@ -13,6 +13,7 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 VERCEL_URL = os.environ.get("VERCEL_URL")
 
+
 # --- ধাপ ২: বট এবং অন্যান্য ক্লায়েন্ট ইনিশিয়ালাইজ করুন ---
 # Vercel-এ "Pool timeout" এরর সমাধানের জন্য timeout যুক্ত করা হয়েছে
 bot = Bot(token=TOKEN, connect_timeout=10.0, read_timeout=10.0)
