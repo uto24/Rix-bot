@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>RiX Mining Hub</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- টেলিগ্রাম মিনি অ্যাপের জন্য অপরিহার্য JS ফাইল -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="profile-header">
+            <img src="https://i.ibb.co/7bJbWJk/coin-icon.png" alt="RiX Coin" class="coin-icon">
+            <h1 id="welcome-message">Welcome!</h1>
+        </div>
+
+        <div class="balance-card">
+            <h2>Your RiX Balance</h2>
+            <p id="balance-amount">Loading...</p>
+        </div>
+
+        <div class="mining-card">
+            <h2>Mining Status</h2>
+            <p id="mining-status">Checking status...</p>
+            <button id="claim-button" class="btn" disabled>Claim Reward</button>
+            <div id="countdown-timer"></div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+  </html>
