@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 from dateutil.parser import parse
 from urllib.parse import quote_plus
 
+
 # --- এনভায়রনমেন্ট ভেরিয়েবল লোড এবং চেক করা ---
 TOKEN = os.environ.get("TELEGRAM_TOKEN")
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
