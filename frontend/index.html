@@ -3,183 +3,335 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>RiX Mining App</title>
+    <title>RiX Earn</title>
+    
+    <!-- Font Awesome আইকনের জন্য CDN লিঙ্ক -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
     <style>
-        /* CSS কোড অপরিবর্তিত, এখানে পেস্ট করতে পারেন অথবা আলাদা ফাইল রাখতে পারেন */
-        :root { --tg-theme-bg-color: #212121; --tg-theme-text-color: #ffffff; --tg-theme-button-color: #5288c1; --tg-theme-button-text-color: #ffffff; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); display: flex; flex-direction: column; justify-content: space-between; align-items: center; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; text-align: center; }
-        .main-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; }
-        .profile-section { font-size: 1.2em; }
-        .coin-display { display: flex; align-items: center; justify-content: center; font-size: 2.5em; font-weight: bold; margin: 20px 0; }
-        .coin-icon { width: 45px; height: 45px; margin-right: 15px; animation: spin 4s linear infinite; }
-        #claim-button { width: 100%; background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); border: none; padding: 15px 0; font-size: 1.2em; font-weight: bold; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; }
-        #claim-button:disabled { background-color: #3e4d58; cursor: not-allowed; }
-        #timer { margin-top: 15px; font-size: 0.9em; opacity: 0.8; }
-        .bottom-nav { width: 100%; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #444; }
-        .nav-button { background: none; border: none; color: var(--tg-theme-text-color); opacity: 0.7; cursor: pointer; font-size: 1.1em; padding: 10px; }
+        /* --- General Styles (Dark Theme) --- */
+        :root {
+            --tg-theme-bg-color: #171a21;
+            --tg-theme-text-color: #e0e0e0;
+            --tg-theme-button-color: #5288c1;
+            --tg-theme-button-text-color: #ffffff;
+            --tg-theme-hint-color: #9099a2;
+            --tg-theme-secondary-bg-color: #2a2c3c;
+            --primary-accent-color: #4a90e2;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- Main Content Area --- */
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: none; /* Initially hide all sections */
+        }
+        .main-content.active {
+            display: block; /* Show active section */
+        }
+
+        /* --- Mining Section --- */
+        #mining-section .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+        .coin-display {
+            display: flex; flex-direction: column; align-items: center; margin-bottom: 30px;
+        }
+        .coin-icon {
+            width: 100px; height: 100px; animation: spin 5s linear infinite;
+        }
+        #balance {
+            font-size: 2.5em; font-weight: bold; margin-top: 15px;
+        }
+        #claim-button {
+            width: 80%; max-width: 300px; background-color: var(--primary-accent-color); color: white; border: none; padding: 18px 0; font-size: 1.2em; font-weight: bold; border-radius: 12px; cursor: pointer; transition: all 0.2s ease;
+        }
+        #claim-button:disabled {
+            background-color: #3e4d58; cursor: not-allowed;
+        }
+        #timer {
+            margin-top: 15px; font-size: 1em; color: var(--tg-theme-hint-color);
+        }
+
+        /* --- Account & Task & Withdraw Sections --- */
+        .info-card {
+            background-color: var(--tg-theme-secondary-bg-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        .info-card h3 {
+            margin-top: 0;
+            color: var(--primary-accent-color);
+        }
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #3a3c4c;
+        }
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        .info-item span:first-child {
+            color: var(--tg-theme-hint-color);
+        }
+        .info-item span:last-child {
+            font-weight: bold;
+        }
+        .referral-link-container {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        #referral-link {
+            flex-grow: 1; background-color: #3a3c4c; border: none; color: white; padding: 10px; border-radius: 8px 0 0 8px; font-size: 0.9em;
+        }
+        #copy-btn {
+            background-color: var(--primary-accent-color); border: none; color: white; padding: 10px 15px; border-radius: 0 8px 8px 0; cursor: pointer; font-size: 0.9em;
+        }
+        .task {
+            display: flex; justify-content: space-between; align-items: center; padding: 15px;
+        }
+
+        /* --- Bottom Navigation --- */
+        .bottom-nav {
+            width: 100%; display: flex; justify-content: space-around; padding: 10px 0; background-color: var(--tg-theme-secondary-bg-color); border-top: 1px solid #3a3c4c;
+        }
+        .nav-button {
+            background: none; border: none; color: var(--tg-theme-hint-color); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.8em; transition: color 0.2s ease;
+        }
+        .nav-button.active {
+            color: var(--primary-accent-color);
+        }
+        .nav-button i {
+            font-size: 1.5em;
+        }
+
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
     </style>
 </head>
 <body>
 
-    <div class="main-content">
-        <div class="profile-section" id="user-info">Loading...</div>
-        <div class="coin-display">
-            <img src="https://i.ibb.co/Y0K2A5T/rix-coin.png" alt="RiX Coin" class="coin-icon">
-            <span id="balance">...</span>
+    <!-- Mining Section -->
+    <div id="mining-section" class="main-content active">
+        <div class="container">
+            <div class="coin-display">
+                <img src="https://i.ibb.co/Y0K2A5T/rix-coin.png" alt="RiX Coin" class="coin-icon">
+                <span id="balance">...</span>
+            </div>
+            <button id="claim-button" disabled>Loading...</button>
+            <p id="timer">...</p>
         </div>
-        <button id="claim-button" disabled>Loading...</button>
-        <p id="timer">...</p>
     </div>
 
-    <div class="bottom-nav">
-        <button class="nav-button" id="referral-btn">🤝 Refer</button>
-        <button class="nav-button" id="task-btn">✅ Tasks</button>
-        <button class="nav-button" id="profile-btn">👤 Profile</button>
+    <!-- Task Section -->
+    <div id="task-section" class="main-content">
+        <div class="info-card">
+            <h3>Daily Tasks</h3>
+            <div class="task">
+                <span>Watch an Ad (+100 RiX)</span>
+                <button id="ad-watch-btn" class="claim-button-small">Watch</button>
+            </div>
+             <div class="task">
+                <span>Follow us on X (+500 RiX)</span>
+                <button onclick="window.open('https://x.com/telegram', '_blank')" class="claim-button-small">Follow</button>
+            </div>
+        </div>
     </div>
-    
-    
-    
-    
-     <!-- ... (body এবং অন্যান্য html ট্যাগ অপরিবর্তিত) ... -->
+
+    <!-- Account Section -->
+    <div id="account-section" class="main-content">
+        <div class="info-card">
+            <h3>My Profile</h3>
+            <div class="info-item"><span>User Name</span><span id="profile-name">...</span></div>
+            <div class="info-item"><span>User ID</span><span id="profile-id">...</span></div>
+            <div class="info-item"><span>Total Balance</span><span id="profile-balance">...</span></div>
+        </div>
+        <div class="info-card">
+            <h3>Referral</h3>
+            <div class="referral-link-container">
+                <input type="text" id="referral-link" readonly>
+                <button id="copy-btn"><i class="fa-regular fa-copy"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Withdraw Section -->
+    <div id="withdraw-section" class="main-content">
+         <div class="info-card">
+            <h3>Withdraw RiX</h3>
+            <p>Withdrawal feature is under development. It will be available soon!</p>
+            <p style="color: var(--tg-theme-hint-color);">Minimum withdrawal: 100,000 RiX</p>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <div class="bottom-nav">
+        <button class="nav-button active" data-section="mining-section"><i class="fa-solid fa-person-digging"></i><span>Mining</span></button>
+        <button class="nav-button" data-section="task-section"><i class="fa-solid fa-list-check"></i><span>Tasks</span></button>
+        <button class="nav-button" data-section="account-section"><i class="fa-solid fa-user"></i><span>Account</span></button>
+        <button class="nav-button" data-section="withdraw-section"><i class="fa-solid fa-wallet"></i><span>Withdraw</span></button>
+    </div>
+
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
+        tg.setHeaderColor('#171a21');
 
+        // DOM Elements
+        const sections = document.querySelectorAll('.main-content');
+        const navButtons = document.querySelectorAll('.nav-button');
         const claimButton = document.getElementById('claim-button');
         const balanceElem = document.getElementById('balance');
         const timerElem = document.getElementById('timer');
-        const userInfoElem = document.getElementById('user-info');
+        const copyBtn = document.getElementById('copy-btn');
         
         let claimInterval;
         let userData = null;
+        const MINING_INTERVAL_HOURS = 6;
 
-        // ব্যবহারকারীর ডেটা লোড করার ফাংশন (আরও নির্ভরযোগ্য)
+        // --- Navigation Logic ---
+        function switchSection(sectionId) {
+            sections.forEach(sec => sec.classList.remove('active'));
+            navButtons.forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(sectionId).classList.add('active');
+            document.querySelector(`.nav-button[data-section="${sectionId}"]`).classList.add('active');
+        }
+
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                switchSection(button.dataset.section);
+                tg.HapticFeedback.impactOccurred('light');
+            });
+        });
+
+        // --- Data Loading and UI Update ---
         async function loadUserData() {
             if (!tg.initDataUnsafe.user || !tg.initDataUnsafe.user.id) {
                 showError("User authentication failed. Please restart the app.");
                 return;
             }
-
             const user = tg.initDataUnsafe.user;
-            // ব্যাকএন্ডে user_id, first_name, username পাঠানো হচ্ছে
             const queryParams = new URLSearchParams({
-                user_id: user.id,
-                first_name: user.first_name || 'Player',
-                username: user.username || ''
+                user_id: user.id, first_name: user.first_name || 'Player', username: user.username || ''
             });
             
             try {
                 const response = await fetch(`/api/user_data?${queryParams.toString()}`);
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to fetch user data');
-                }
-                
+                if (!response.ok) throw new Error('Failed to fetch user data');
                 userData = await response.json();
-                updateUI(userData);
-            } catch (error) {
-                showError(error.message);
-            }
+                updateAllUI(userData);
+            } catch (error) { showError(error.message); }
         }
 
-        // UI আপডেট করার ফাংশন
-        function updateUI(data) {
+        function updateAllUI(data) {
             if (!data) return;
-            userInfoElem.innerText = `Welcome, ${data.first_name}!`;
+            // Mining Section
             balanceElem.innerText = formatBalance(data.rix_balance);
-            
-            const miningIntervalHours = 6;
+            updateMiningStatus(data);
+            // Account Section
+            document.getElementById('profile-name').innerText = data.first_name;
+            document.getElementById('profile-id').innerText = data.user_id;
+            document.getElementById('profile-balance').innerText = formatBalance(data.rix_balance) + ' RiX';
+            const botUsername = "Rix_earn_bot"; // এখানে আপনার বটের ইউজারনেম দিন
+            document.getElementById('referral-link').value = `https://t.me/${botUsername}?start=${data.referral_code}`;
+        }
+        
+        function updateMiningStatus(data) {
             const lastClaimTime = data.last_mining_claim ? new Date(data.last_mining_claim) : null;
-            
             if (claimInterval) clearInterval(claimInterval);
-
+            
             if (!lastClaimTime) {
-                claimButton.disabled = false;
-                claimButton.innerText = "Claim Reward";
+                claimButton.disabled = false; claimButton.innerText = "Claim Reward";
                 timerElem.innerText = "Ready to claim your first reward!";
                 return;
             }
 
-            const nextClaimTime = new Date(lastClaimTime.getTime() + miningIntervalHours * 60 * 60 * 1000);
-
-            claimInterval = setInterval(() => {
+            const nextClaimTime = new Date(lastClaimTime.getTime() + MINING_INTERVAL_HOURS * 60 * 60 * 1000);
+            
+            function updateTimer() {
                 const now = new Date();
                 const timeLeft = nextClaimTime - now;
-
                 if (timeLeft <= 0) {
-                    claimButton.disabled = false;
-                    claimButton.innerText = "Claim Reward";
+                    claimButton.disabled = false; claimButton.innerText = "Claim Reward";
                     timerElem.innerText = "Ready to claim!";
                     clearInterval(claimInterval);
                 } else {
-                    claimButton.disabled = true;
-                    claimButton.innerText = "Mining...";
-                    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-                    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-                    timerElem.innerText = `Next claim in: ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+                    claimButton.disabled = true; claimButton.innerText = "Mining...";
+                    const h = Math.floor(timeLeft / 3600000);
+                    const m = Math.floor((timeLeft % 3600000) / 60000);
+                    const s = Math.floor((timeLeft % 60000) / 1000);
+                    timerElem.innerText = `Next claim in: ${pad(h)}:${pad(m)}:${pad(s)}`;
                 }
-            }, 1000);
+            }
+            updateTimer();
+            claimInterval = setInterval(updateTimer, 1000);
         }
 
-        // ক্লেইম বাটনের ইভেন্ট
+        // --- Event Listeners ---
         claimButton.addEventListener('click', async () => {
-            if (!tg.initDataUnsafe.user || !tg.initDataUnsafe.user.id) {
-                showError("User authentication failed.");
-                return;
-            }
-            claimButton.disabled = true;
-            claimButton.innerText = "Claiming...";
+            if (!tg.initDataUnsafe.user) return showError("User not authenticated.");
+            claimButton.disabled = true; claimButton.innerText = "Claiming...";
             tg.HapticFeedback.impactOccurred('light');
 
             try {
                 const response = await fetch('/api/claim_reward', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ user_id: tg.initDataUnsafe.user.id })
                 });
                 const result = await response.json();
                 if (result.success) {
                     tg.HapticFeedback.notificationOccurred('success');
-                    updateUI(result.user_data);
+                    userData = result.user_data;
+                    updateAllUI(userData);
                 } else {
                     showError(result.message || "Failed to claim.");
                     loadUserData();
                 }
-            } catch (error) {
-                showError("An error occurred during claim.");
-                loadUserData();
-            }
+            } catch (error) { showError("An error occurred."); loadUserData(); }
         });
 
-        // অন্যান্য নেভিগেশন বাটন
-        document.getElementById('referral-btn').addEventListener('click', () => {
-             if (!userData) { showError("User data not loaded yet."); return; }
-             const botUsername = "YourBotUsername"; // এখানে আপনার বটের ইউজারনেম দিন
-             const refLink = `https://t.me/${botUsername}?start=${userData.referral_code}`;
-             tg.showAlert(`Share this link to refer friends:\n\n${refLink}`);
-        });
-        document.getElementById('task-btn').addEventListener('click', () => {
-             tg.showAlert("Ad watch and other tasks are coming soon!");
-        });
-        document.getElementById('profile-btn').addEventListener('click', () => {
-             if (!userData) { showError("User data not loaded yet."); return; }
-             tg.showAlert(`User Profile:\n\nID: ${userData.user_id}\nBalance: ${formatBalance(userData.rix_balance)}`);
+        copyBtn.addEventListener('click', () => {
+            const linkInput = document.getElementById('referral-link');
+            navigator.clipboard.writeText(linkInput.value).then(() => {
+                tg.HapticFeedback.notificationOccurred('success');
+                alert('Referral link copied!');
+            }, () => {
+                showError('Failed to copy link.');
+            });
         });
 
-        // Helper functions
+        // --- Helper Functions ---
         function formatBalance(num) { return new Intl.NumberFormat().format(Math.floor(num)); }
         function pad(n) { return n < 10 ? '0' + n : n; }
         function showError(message) { tg.showAlert(message); }
 
-        // অ্যাপ লোড হলে ডেটা আনুন
+        // Initial Load
         loadUserData();
+        switchSection('mining-section');
 
     </script>
-    <!-- ... (বাকি html ট্যাগ অপরিবর্তিত) ... -->
-
 </body>
 </html>
