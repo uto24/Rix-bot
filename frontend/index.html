@@ -1,164 +1,140 @@
-import os
-import uuid
-from flask import Flask, request, Response, send_from_directory, jsonify
-from flask_cors import CORS
-from telegram import Update, Bot, InlineKeyboardButton, InlineKeyboardMarkup
-from supabase import create_client, Client
-from datetime import datetime, timedelta, timezone
-from dateutil.parser import parse
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>RiX Earn</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script src='//libtl.com/sdk.js' data-zone='9504423' data-sdk='show_9504423'></script>
+    <style>
+        :root { --tg-theme-bg-color: #171a21; --tg-theme-text-color: #e0e0e0; --tg-theme-button-color: #5288c1; --tg-theme-button-text-color: #ffffff; --tg-theme-hint-color: #9099a2; --tg-theme-secondary-bg-color: #2a2c3c; --primary-accent-color: #4a90e2; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        .main-content { flex-grow: 1; padding: 20px; overflow-y: auto; display: none; text-align: center; }
+        .main-content.active { display: flex; flex-direction: column; align-items: center; }
+        .info-card { background-color: var(--tg-theme-secondary-bg-color); border-radius: 12px; padding: 20px; margin-bottom: 15px; width: 90%; max-width: 400px; }
+        .info-card h3 { margin-top: 0; color: var(--primary-accent-color); display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .info-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #3a3c4c; }
+        .info-item:last-child { border-bottom: none; }
+        .referral-link-container { display: flex; align-items: center; margin-top: 10px; }
+        #referral-link { flex-grow: 1; background-color: #3a3c4c; border: none; color: white; padding: 10px; border-radius: 8px 0 0 8px; font-size: 0.9em; }
+        #copy-btn { background-color: var(--primary-accent-color); border: none; color: white; padding: 10px 15px; border-radius: 0 8px 8px 0; cursor: pointer; }
+        #referral-list-container { margin-top: 20px; text-align: left; }
+        #referral-list { list-style-type: none; padding: 0; max-height: 150px; overflow-y: auto; }
+        #referral-list li { background-color: #3a3c4c; padding: 8px 12px; border-radius: 6px; margin-bottom: 5px; font-size: 0.9em; }
+        .main-button { width: 100%; background-color: var(--tg-theme-button-color); color: white; border: none; padding: 15px 0; font-size: 1.1em; font-weight: bold; border-radius: 10px; cursor: pointer; margin-top: 10px; }
+        .main-button:disabled { background-color: #555; cursor: not-allowed; }
+        .bottom-nav { width: 100%; display: flex; justify-content: space-around; padding: 10px 0; background-color: var(--tg-theme-secondary-bg-color); border-top: 1px solid #3a3c4c; }
+        .nav-button { background: none; border: none; color: var(--tg-theme-hint-color); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.8em; }
+        .nav-button.active { color: var(--primary-accent-color); }
+        .nav-button i { font-size: 1.5em; }
+    </style>
+</head>
+<body>
+    <!-- Mining Section -->
+    <div id="mining-section" class="main-content active"> ... </div>
+    <!-- Task Section -->
+    <div id="task-section" class="main-content"> ... </div>
+    <!-- Account Section -->
+    <div id="account-section" class="main-content">
+        <div class="info-card">
+            <h3><i class="fa-solid fa-user"></i> My Profile</h3>
+            <div class="info-item"><span>User Name</span><span id="profile-name">...</span></div>
+            <div class="info-item"><span>Total Balance</span><span id="profile-balance">...</span></div>
+            <div class="info-item"><span>Today's Tasks Done</span><span id="profile-tasks-done">...</span></div>
+        </div>
+        <div class="info-card">
+            <h3><i class="fa-solid fa-share-nodes"></i> Referral System</h3>
+            <div class="info-item"><span>Your Referrals</span><span id="referral-count">0</span></div>
+            <div class="referral-link-container">
+                <input type="text" id="referral-link" readonly>
+                <button id="copy-btn"><i class="fa-regular fa-copy"></i> Copy</button>
+            </div>
+            <div id="referral-list-container">
+                <h4>Recent Referrals:</h4>
+                <ul id="referral-list"></ul>
+            </div>
+        </div>
+    </div>
+    <!-- Withdraw Section -->
+    <div id="withdraw-section" class="main-content"> ... </div>
+    <!-- Bottom Navigation Bar -->
+    <div class="bottom-nav">
+        <button class="nav-button active" data-section="mining-section">...</button>
+        <button class="nav-button" data-section="task-section">...</button>
+        <button class="nav-button" data-section="account-section">...</button>
+        <button class="nav-button" data-section="withdraw-section">...</button>
+    </div>
 
-# --- এনভায়রনমেন্ট ভেরিয়েবল এবং ক্লায়েন্ট ---
-TOKEN = os.environ.get("TELEGRAM_TOKEN")
-SUPABASE_URL = os.environ.get("SUPABASE_URL")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
-VERCEL_URL = os.environ.get("VERCEL_URL")
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready(); tg.expand();
 
-bot = Bot(token=TOKEN)
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
-
-# --- গেমের নিয়ম ---
-NEW_USER_BONUS = 2000
-REFERRAL_BONUS = 1000
-TASK_REWARD = 200
-DAILY_TASK_LIMIT = 100
-MINING_REWARD = 500
-MINING_COOLDOWN_HOURS = 8
-
-# --- সহায়ক ফাংশন ---
-def generate_referral_code(): return str(uuid.uuid4())[:8]
-
-def update_rix_balance(user_id, amount_to_add):
-    try:
-        user_data = supabase.table('users').select('rix_balance').eq('user_id', user_id).single().execute()
-        current_balance = user_data.data.get('rix_balance', 0) if user_data.data else 0
-        new_balance = current_balance + amount_to_add
-        supabase.table('users').update({'rix_balance': new_balance}).eq('user_id', user_id).execute()
-    except Exception as e: print(f"Balance update error for {user_id}: {e}")
-
-def get_main_menu_keyboard():
-    mini_app_url = f"https://{VERCEL_URL}/app" if VERCEL_URL else ""
-    keyboard = [[InlineKeyboardButton("💎 ওপেন RiX Earn অ্যাপ", web_app={'url': mini_app_url})]]
-    return InlineKeyboardMarkup(keyboard)
-
-# --- মূল সিঙ্ক্রোনাস লজিক (বটের জন্য) ---
-def handle_update(update_data):
-    update = Update.de_json(update_data, bot)
-    if update.message and update.message.text and update.message.text.startswith('/start'):
-        user = update.message.from_user; chat_id = update.message.chat_id; text = update.message.text
-        command_parts = text.split(); referrer_id = None
-        if len(command_parts) > 1:
-            referrer_data = supabase.table('users').select('user_id').eq('referral_code', command_parts[1]).single().execute()
-            if referrer_data.data: referrer_id = referrer_data.data['user_id']
+        const sections = document.querySelectorAll('.main-content');
+        const navButtons = document.querySelectorAll('.nav-button');
+        const copyBtn = document.getElementById('copy-btn');
+        const referralListElem = document.getElementById('referral-list');
+        const referralCountElem = document.getElementById('referral-count');
         
-        existing_user = supabase.table('users').select('user_id').eq('user_id', user.id).single().execute()
-        if not existing_user.data:
-            initial_balance = NEW_USER_BONUS
-            if referrer_id and referrer_id != user.id:
-                print(f"User {user.id} joined via referral from {referrer_id}. Awarding bonus.")
-                update_rix_balance(referrer_id, REFERRAL_BONUS)
-                try:
-                    bot.send_message(chat_id=referrer_id, text=f"🎉 Congratulations! {user.first_name} has joined using your link. You've received a {REFERRAL_BONUS} RiX bonus!")
-                except Exception as e: print(f"Could not send notification to referrer {referrer_id}: {e}")
-            
-            supabase.table('users').insert({'user_id': user.id, 'first_name': user.first_name, 'username': user.username or '', 'referral_code': generate_referral_code(), 'rix_balance': initial_balance, 'referred_by': referrer_id, 'daily_tasks_completed': 0, 'last_task_reset': datetime.now(timezone.utc).strftime('%Y-%m-%d')}).execute()
-            welcome_message = f"স্বাগতম, {user.first_name}! আপনি বোনাস হিসেবে {NEW_USER_BONUS} RiX পেয়েছেন!"
-        else:
-            welcome_message = f"ফিরে আসার জন্য ধন্যবাদ, {user.first_name}!"
-        bot.send_message(chat_id=chat_id, text=welcome_message, reply_markup=get_main_menu_keyboard())
+        let userData = null;
 
-# --- Vercel এর জন্য ওয়েব সার্ভার এবং API এন্ডপয়েন্টস ---
-@app.route('/app')
-def mini_app_handler():
-    try:
-        root_path = os.path.join(os.path.dirname(__file__), '..')
-        return send_from_directory(os.path.join(root_path, 'frontend'), 'index.html')
-    except Exception as e: return "Mini App not found", 404
+        // Navigation Logic
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const sectionId = button.dataset.section;
+                sections.forEach(sec => sec.classList.remove('active'));
+                navButtons.forEach(btn => btn.classList.remove('active'));
+                document.getElementById(sectionId).classList.add('active');
+                button.classList.add('active');
+                if (sectionId === 'account-section' && userData) {
+                    loadReferrals(userData.user_id);
+                }
+            });
+        });
 
-@app.route('/api/user_data', methods=['GET'])
-def get_user_data():
-    # ... (আগের উত্তর থেকে সম্পূর্ণ কোড, অপরিবর্তিত) ...
-    try:
-        user_id_str = request.args.get('user_id'); first_name = request.args.get('first_name', 'Player'); username = request.args.get('username', '')
-        if not user_id_str: return jsonify({"error": "User ID is required"}), 400
-        user_id = int(user_id_str)
-        response = supabase.table('users').select('*').eq('user_id', user_id).execute()
-        if response.data:
-            user_data = response.data[0]; today_str = datetime.now(timezone.utc).strftime('%Y-%m-%d')
-            if str(user_data.get('last_task_reset')) != today_str:
-                supabase.table('users').update({'daily_tasks_completed': 0, 'last_task_reset': today_str}).eq('user_id', user_id).execute()
-                updated_response = supabase.table('users').select('*').eq('user_id', user_id).single().execute()
-                return jsonify(updated_response.data)
-            return jsonify(user_data)
-        else:
-            new_user_data = {'user_id': user_id, 'first_name': first_name, 'username': username, 'referral_code': generate_referral_code(), 'rix_balance': NEW_USER_BONUS, 'daily_tasks_completed': 0, 'last_task_reset': datetime.now(timezone.utc).strftime('%Y-%m-%d')}
-            insert_response = supabase.table('users').insert(new_user_data).execute()
-            if insert_response.data: return jsonify(insert_response.data[0])
-            else: return jsonify({"error": "Could not create profile"}), 500
-    except Exception as e: return jsonify({"error": f"Internal server error: {e}"}), 500
+        // Data Loading
+        async function loadUserData() {
+            if (!tg.initDataUnsafe.user?.id) return;
+            const user = tg.initDataUnsafe.user;
+            const queryParams = new URLSearchParams({ user_id: user.id, first_name: user.first_name, username: user.username });
+            const response = await fetch(`/api/user_data?${queryParams.toString()}`);
+            userData = await response.json();
+            updateAllUI();
+        }
 
-@app.route('/api/get_referrals', methods=['GET'])
-def get_referrals_api():
-    try:
-        user_id_str = request.args.get('user_id')
-        if not user_id_str: return jsonify({"error": "User ID is required"}), 400
-        user_id = int(user_id_str)
-        response = supabase.table('users').select('first_name, created_at').eq('referred_by', user_id).order('created_at', desc=True).limit(20).execute()
-        return jsonify(response.data)
-    except Exception as e: return jsonify({"error": f"Internal server error: {str(e)}"}), 500
-
-@app.route('/api/complete_task', methods=['POST'])
-def complete_task_api():
-    # ... (আগের উত্তর থেকে সম্পূর্ণ কোড, অপরিবর্তিত) ...
-    try:
-        data = request.json; user_id = data.get('user_id');
-        if not user_id: return jsonify({"error": "User ID is required"}), 400
-        user_id = int(user_id)
-        user_data = supabase.table('users').select('daily_tasks_completed').eq('user_id', user_id).single().execute().data
-        if not user_data: return jsonify({"error": "User not found"}), 404
-        completed_tasks = user_data.get('daily_tasks_completed', 0)
-        if completed_tasks >= DAILY_TASK_LIMIT: return jsonify({"success": False, "message": "All tasks completed for today."})
-        update_rix_balance(user_id, TASK_REWARD); new_completed_count = completed_tasks + 1
-        supabase.table('users').update({'daily_tasks_completed': new_completed_count}).eq('user_id', user_id).execute()
-        new_user_data = supabase.table('users').select('*').eq('user_id', user_id).single().execute().data
-        return jsonify({"success": True, "message": f"{TASK_REWARD} RiX received!", "user_data": new_user_data})
-    except Exception as e: return jsonify({"error": f"Internal server error: {e}"}), 500
-
-@app.route('/api/claim_mining', methods=['POST'])
-def claim_mining_api():
-    # ... (আগের উত্তর থেকে সম্পূর্ণ কোড, অপরিবর্তিত) ...
-    try:
-        data = request.json; user_id = data.get('user_id')
-        if not user_id: return jsonify({"error": "User ID is required"}), 400
-        user_id = int(user_id)
-        user_response = supabase.table('users').select('last_mining_claim').eq('user_id', user_id).execute()
-        if not user_response.data: return jsonify({"error": "User not found"}), 404
-        user_data = user_response.data[0]; last_claim_str = user_data.get('last_mining_claim')
-        can_claim = False
-        if not last_claim_str: can_claim = True
-        else:
-            try:
-                last_claim_time = parse(last_claim_str); next_claim_time = last_claim_time + timedelta(hours=MINING_COOLDOWN_HOURS)
-                if datetime.now(timezone.utc) >= next_claim_time: can_claim = True
-            except (TypeError, ValueError): can_claim = True
-        if can_claim:
-            update_rix_balance(user_id, MINING_REWARD); now_utc = datetime.now(timezone.utc).isoformat()
-            supabase.table('users').update({'last_mining_claim': now_utc}).eq('user_id', user_id).execute()
-            new_user_data = supabase.table('users').select('*').eq('user_id', user_id).single().execute().data
-            return jsonify({"success": True, "message": f"{MINING_REWARD} RiX claimed!", "user_data": new_user_data})
-        else:
-            next_claim_time = parse(last_claim_str) + timedelta(hours=MINING_COOLDOWN_HOURS)
-            return jsonify({"success": False, "message": "Not time to claim yet.", "next_claim_time": next_claim_time.isoformat()})
-    except Exception as e: return jsonify({"error": f"Internal server error: {str(e)}"}), 500
-
-@app.route('/', methods=['GET', 'POST'])
-def webhook_handler():
-    if request.method == 'POST':
-        try: handle_update(request.json)
-        except Exception as e: print(f"Error: {e}")
-        return Response(status=200)
-    elif request.method == 'GET':
-        webhook_url = f"https://{VERCEL_URL}/"; bot.set_webhook(url=webhook_url)
-        return "Webhook set"
-    return "Unsupported"
+        function updateAllUI() {
+            if (!userData) return;
+            // ... (Task, Mining, Account UI আপডেট করার কোড) ...
+            document.getElementById('profile-name').innerText = userData.first_name;
+            document.getElementById('profile-balance').innerText = new Intl.NumberFormat().format(userData.rix_balance) + ' RiX';
+            const botUsername = "Rix_earn_bot";
+            document.getElementById('referral-link').value = `https://t.me/${botUsername}?start=${userData.referral_code}`;
+        }
+        
+        async function loadReferrals(userId) {
+            referralListElem.innerHTML = '<li>Loading...</li>';
+            const response = await fetch(`/api/get_referrals?user_id=${userId}`);
+            const referrals = await response.json();
+            referralCountElem.innerText = referrals.length;
+            referralListElem.innerHTML = '';
+            if (referrals.length === 0) {
+                referralListElem.innerHTML = '<li>No referrals yet.</li>';
+                return;
+            }
+            referrals.forEach(ref => {
+                const li = document.createElement('li');
+                const date = new Date(ref.created_at).toLocaleDateString();
+                li.innerText = `${ref.first_name} - Joined on ${date}`;
+                referralListElem.appendChild(li);
+            });
+        }
+        
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(document.getElementById('referral-link').value)
+                .then(() => tg.showAlert('Referral link copied!'));
+        });
+        
+        loadUserData();
+    </script>
+</body>
+</html>
