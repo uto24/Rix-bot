@@ -4,156 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>RiX Earn</title>
-    
-    <!-- Font Awesome আইকনের জন্য CDN লিঙ্ক -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    
-    <!-- Monetag SDK লোড করার জন্য -->
     <script src='//libtl.com/sdk.js' data-zone='9504423' data-sdk='show_9504423'></script>
-
     <style>
-        :root {
-            --tg-theme-bg-color: #171a21;
-            --tg-theme-text-color: #e0e0e0;
-            --tg-theme-button-color: #5288c1;
-            --tg-theme-button-text-color: #ffffff;
-            --tg-theme-hint-color: #9099a2;
-            --tg-theme-secondary-bg-color: #2a2c3c;
-            --primary-accent-color: #4a90e2;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--tg-theme-bg-color);
-            color: var(--tg-theme-text-color);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-        }
-        .main-content {
-            flex-grow: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: none;
-            text-align: center;
-        }
-        .main-content.active {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .info-card {
-            background-color: var(--tg-theme-secondary-bg-color);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
-            width: 90%;
-            max-width: 400px;
-        }
-        .info-card h3 {
-            margin-top: 0;
-            color: var(--primary-accent-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #3a3c4c;
-        }
-        .info-item:last-child {
-            border-bottom: none;
-        }
-        .referral-link-container {
-            display: flex;
-            align-items: center;
-            margin-top: 10px;
-        }
-        #referral-link {
-            flex-grow: 1;
-            background-color: #3a3c4c;
-            border: none;
-            color: white;
-            padding: 10px;
-            border-radius: 8px 0 0 8px;
-            font-size: 0.9em;
-        }
-        #copy-btn {
-            background-color: var(--primary-accent-color);
-            border: none;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 0 8px 8px 0;
-            cursor: pointer;
-        }
-        #referral-list-container {
-            margin-top: 20px;
-            text-align: left;
-        }
-        #referral-list {
-            list-style-type: none;
-            padding: 0;
-            max-height: 150px;
-            overflow-y: auto;
-        }
-        #referral-list li {
-            background-color: #3a3c4c;
-            padding: 8px 12px;
-            border-radius: 6px;
-            margin-bottom: 5px;
-            font-size: 0.9em;
-        }
-        .main-button {
-            width: 100%;
-            background-color: var(--tg-theme-button-color);
-            color: white;
-            border: none;
-            padding: 15px 0;
-            font-size: 1.1em;
-            font-weight: bold;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .main-button:disabled {
-            background-color: #555;
-            cursor: not-allowed;
-        }
-        .timer-text {
-            margin-top: 15px;
-            font-size: 1em;
-            color: var(--tg-theme-hint-color);
-        }
-        .bottom-nav {
-            width: 100%;
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-            background-color: var(--tg-theme-secondary-bg-color);
-            border-top: 1px solid #3a3c4c;
-        }
-        .nav-button {
-            background: none;
-            border: none;
-            color: var(--tg-theme-hint-color);
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            font-size: 0.8em;
-        }
-        .nav-button.active {
-            color: var(--primary-accent-color);
-        }
-        .nav-button i {
-            font-size: 1.5em;
-        }
+        :root { --tg-theme-bg-color: #171a21; --tg-theme-text-color: #e0e0e0; --tg-theme-button-color: #5288c1; --tg-theme-button-text-color: #ffffff; --tg-theme-hint-color: #9099a2; --tg-theme-secondary-bg-color: #2a2c3c; --primary-accent-color: #4a90e2; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        .main-content { flex-grow: 1; padding: 20px; overflow-y: auto; display: none; text-align: center; }
+        .main-content.active { display: flex; flex-direction: column; align-items: center; }
+        .info-card { background-color: var(--tg-theme-secondary-bg-color); border-radius: 12px; padding: 20px; margin-bottom: 15px; width: 90%; max-width: 400px; }
+        .info-card h3 { margin-top: 0; color: var(--primary-accent-color); display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .info-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #3a3c4c; }
+        .info-item:last-child { border-bottom: none; }
+        .referral-link-container { display: flex; align-items: center; margin-top: 10px; }
+        #referral-link { flex-grow: 1; background-color: #3a3c4c; border: none; color: white; padding: 10px; border-radius: 8px 0 0 8px; font-size: 0.9em; }
+        #copy-btn { background-color: var(--primary-accent-color); border: none; color: white; padding: 10px 15px; border-radius: 0 8px 8px 0; cursor: pointer; }
+        #referral-list-container { margin-top: 20px; text-align: left; }
+        #referral-list { list-style-type: none; padding: 0; max-height: 150px; overflow-y: auto; }
+        #referral-list li { background-color: #3a3c4c; padding: 8px 12px; border-radius: 6px; margin-bottom: 5px; font-size: 0.9em; }
+        .main-button { width: 100%; background-color: var(--tg-theme-button-color); color: white; border: none; padding: 15px 0; font-size: 1.1em; font-weight: bold; border-radius: 10px; cursor: pointer; margin-top: 10px; }
+        .main-button:disabled { background-color: #555; cursor: not-allowed; }
+        .timer-text { margin-top: 15px; font-size: 1em; color: var(--tg-theme-hint-color); }
+        .bottom-nav { width: 100%; display: flex; justify-content: space-around; padding: 10px 0; background-color: var(--tg-theme-secondary-bg-color); border-top: 1px solid #3a3c4c; }
+        .nav-button { background: none; border: none; color: var(--tg-theme-hint-color); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.8em; }
+        .nav-button.active { color: var(--primary-accent-color); }
+        .nav-button i { font-size: 1.5em; }
     </style>
 </head>
 <body>
@@ -172,6 +46,7 @@
             <h3><i class="fa-solid fa-list-check"></i> Today's Tasks</h3>
             <div class="info-item"><span>Total Tasks</span><span id="total-tasks">100</span></div>
             <div class="info-item"><span>Completed</span><span id="tasks-completed">...</span></div>
+            <div class="info-item"><span>Remaining</span><span id="tasks-remaining">...</span></div>
             <button id="start-task-btn" class="main-button" disabled>Watch Ad (+200 RiX)</button>
         </div>
     </div>
@@ -210,224 +85,153 @@
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tg = window.Telegram.WebApp;
+            tg.ready();
+            tg.expand();
 
-        // --- টেলিগ্রাম ওয়েব অ্যাপ অবজেক্ট ইনিশিয়ালাইজেশন ---
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-        tg.setHeaderColor('#171a21');
-
-        // --- DOM (Document Object Model) Elements ---
-        const sections = document.querySelectorAll('.main-content');
-        const navButtons = document.querySelectorAll('.nav-button');
-        const startTaskBtn = document.getElementById('start-task-btn');
-        const miningClaimBtn = document.getElementById('mining-claim-btn');
-        const miningTimerElem = document.getElementById('mining-timer');
-        const copyBtn = document.getElementById('copy-btn');
-        const referralListElem = document.getElementById('referral-list');
-        const referralCountElem = document.getElementById('referral-count');
-        
-        // --- গ্লোবাল ভেরিয়েবল ---
-        let userData = null;
-        let miningInterval;
-        const DAILY_TASK_LIMIT = 100;
-        const MINING_COOLDOWN_HOURS = 8;
-        
-        // --- নেভিগেশন লজিক ---
-        navButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const sectionId = button.dataset.section;
-                // সব সেকশন লুকিয়ে ফেলুন
-                sections.forEach(sec => sec.classList.remove('active'));
-                navButtons.forEach(btn => btn.classList.remove('active'));
-                
-                // নির্দিষ্ট সেকশনটি দেখান
-                document.getElementById(sectionId).classList.add('active');
-                button.classList.add('active');
-                
-                // Account সেকশনে ক্লিক করলে রেফারেল তালিকা লোড করুন
-                if (sectionId === 'account-section' && userData) {
-                    loadReferrals(userData.user_id);
-                }
+            const sections = document.querySelectorAll('.main-content');
+            const navButtons = document.querySelectorAll('.nav-button');
+            const startTaskBtn = document.getElementById('start-task-btn');
+            const miningClaimBtn = document.getElementById('mining-claim-btn');
+            const miningTimerElem = document.getElementById('mining-timer');
+            const copyBtn = document.getElementById('copy-btn');
+            const referralListElem = document.getElementById('referral-list');
+            const referralCountElem = document.getElementById('referral-count');
+            
+            let userData = null;
+            let miningInterval;
+            const DAILY_TASK_LIMIT = 100;
+            const MINING_COOLDOWN_HOURS = 8;
+            
+            navButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const sectionId = button.dataset.section;
+                    sections.forEach(sec => sec.classList.remove('active'));
+                    navButtons.forEach(btn => btn.classList.remove('active'));
+                    document.getElementById(sectionId).classList.add('active');
+                    button.classList.add('active');
+                    if (sectionId === 'account-section' && userData) {
+                        loadReferrals(userData.user_id);
+                    }
+                });
             });
-        });
 
-        // --- ডেটা লোডিং এবং UI আপডেট ---
-
-        // সার্ভার থেকে ব্যবহারকারীর সব ডেটা নিয়ে আসার ফাংশন
-        async function loadUserData() {
-            if (!tg.initDataUnsafe.user?.id) return showError("Authentication Error!");
-            const user = tg.initDataUnsafe.user;
-            const queryParams = new URLSearchParams({ user_id: user.id, first_name: user.first_name, username: user.username });
-            try {
-                const response = await fetch(`/api/user_data?${queryParams.toString()}`);
-                if (!response.ok) throw new Error('Failed to load user data.');
-                userData = await response.json();
-                updateAllUI();
-            } catch (error) { showError(error.message); }
-        }
-
-        // নতুন ডেটা দিয়ে সব সেকশনের UI আপডেট করার ফাংশন
-        function updateAllUI() {
-            if (!userData) return;
-            const completed = userData.daily_tasks_completed || 0;
-            const balance = userData.rix_balance || 0;
-            
-            // Task Section UI
-            document.getElementById('tasks-completed').innerText = completed;
-            document.getElementById('tasks-remaining').innerText = DAILY_TASK_LIMIT - completed;
-            startTaskBtn.disabled = completed >= DAILY_TASK_LIMIT;
-            startTaskBtn.innerText = completed >= DAILY_TASK_LIMIT ? "All Tasks Done" : "Watch Ad (+200 RiX)";
-            
-            // Account Section UI
-            document.getElementById('profile-name').innerText = userData.first_name;
-            document.getElementById('profile-balance').innerText = formatBalance(balance) + ' RiX';
-            document.getElementById('profile-tasks-done').innerText = `${completed} / ${DAILY_TASK_LIMIT}`;
-            
-            // Referral Link UI
-            const botUsername = "Rix_earn_bot";
-            document.getElementById('referral-link').value = `https://t.me/${botUsername}?start=${userData.referral_code}`;
-            
-            // Mining Section UI
-            updateMiningStatus();
-        }
-
-        // শুধুমাত্র মাইনিং টাইমার এবং বাটন আপডেট করার ফাংশন
-        function updateMiningStatus() {
-            if (!userData || !miningClaimBtn) return;
-            const lastClaimTime = userData.last_mining_claim ? new Date(userData.last_mining_claim) : null;
-            if (miningInterval) clearInterval(miningInterval);
-
-            if (!lastClaimTime) {
-                miningClaimBtn.disabled = false; miningClaimBtn.innerText = "Claim Mining Reward";
-                miningTimerElem.innerText = "Ready to claim!"; return;
+            async function loadUserData() {
+                if (!tg.initDataUnsafe.user?.id) return showError("Authentication Error!");
+                const user = tg.initDataUnsafe.user;
+                const queryParams = new URLSearchParams({ user_id: user.id, first_name: user.first_name || 'Player', username: user.username || '' });
+                try {
+                    const response = await fetch(`/api/user_data?${queryParams.toString()}`);
+                    if (!response.ok) throw new Error('Failed to load user data.');
+                    userData = await response.json();
+                    updateAllUI();
+                } catch (error) { showError(error.message); }
             }
-            const nextClaimTime = new Date(lastClaimTime.getTime() + MINING_COOLDOWN_HOURS * 60 * 60 * 1000);
-            
-            function updateTimer() {
-                const now = new Date();
-                const timeLeft = nextClaimTime - now;
-                if (timeLeft <= 0) {
+
+            function updateAllUI() {
+                if (!userData) return;
+                const completed = userData.daily_tasks_completed || 0;
+                const balance = userData.rix_balance || 0;
+                document.getElementById('tasks-completed').innerText = completed;
+                document.getElementById('tasks-remaining').innerText = DAILY_TASK_LIMIT - completed;
+                startTaskBtn.disabled = completed >= DAILY_TASK_LIMIT;
+                startTaskBtn.innerText = completed >= DAILY_TASK_LIMIT ? "All Tasks Done" : "Watch Ad (+200 RiX)";
+                document.getElementById('profile-name').innerText = userData.first_name;
+                document.getElementById('profile-balance').innerText = formatBalance(balance) + ' RiX';
+                document.getElementById('profile-tasks-done').innerText = `${completed} / ${DAILY_TASK_LIMIT}`;
+                const botUsername = "Rix_earn_bot";
+                document.getElementById('referral-link').value = `https://t.me/${botUsername}?start=${userData.referral_code}`;
+                updateMiningStatus();
+            }
+
+            function updateMiningStatus() {
+                if (!userData || !miningClaimBtn) return;
+                const lastClaimTime = userData.last_mining_claim ? new Date(userData.last_mining_claim) : null;
+                if (miningInterval) clearInterval(miningInterval);
+                if (!lastClaimTime) {
                     miningClaimBtn.disabled = false; miningClaimBtn.innerText = "Claim Mining Reward";
-                    miningTimerElem.innerText = "Ready to claim!"; clearInterval(miningInterval);
-                } else {
-                    miningClaimBtn.disabled = true; miningClaimBtn.innerText = "Mining...";
-                    const h = Math.floor(timeLeft / 3600000);
-                    const m = Math.floor((timeLeft % 3600000) / 60000);
-                    const s = Math.floor((timeLeft % 60000) / 1000);
-                    miningTimerElem.innerText = `Next claim in: ${pad(h)}:${pad(m)}:${pad(s)}`;
+                    miningTimerElem.innerText = "Ready to claim!"; return;
                 }
+                const nextClaimTime = new Date(lastClaimTime.getTime() + MINING_COOLDOWN_HOURS * 60 * 60 * 1000);
+                function updateTimer() {
+                    const now = new Date(); const timeLeft = nextClaimTime - now;
+                    if (timeLeft <= 0) {
+                        miningClaimBtn.disabled = false; miningClaimBtn.innerText = "Claim Mining Reward";
+                        miningTimerElem.innerText = "Ready to claim!"; clearInterval(miningInterval);
+                    } else {
+                        miningClaimBtn.disabled = true; miningClaimBtn.innerText = "Mining...";
+                        const h = Math.floor(timeLeft / 3600000), m = Math.floor((timeLeft % 3600000) / 60000), s = Math.floor((timeLeft % 60000) / 1000);
+                        miningTimerElem.innerText = `Next claim in: ${pad(h)}:${pad(m)}:${pad(s)}`;
+                    }
+                }
+                updateTimer();
+                miningInterval = setInterval(updateTimer, 1000);
             }
-            updateTimer();
-            miningInterval = setInterval(updateTimer, 1000);
-        }
-
-        // রেফারেল তালিকা লোড করার ফাংশন
-        async function loadReferrals(userId) {
-            referralListElem.innerHTML = '<li>Loading...</li>';
-            try {
+            
+            async function loadReferrals(userId) {
+                referralListElem.innerHTML = '<li>Loading...</li>';
                 const response = await fetch(`/api/get_referrals?user_id=${userId}`);
-                if (!response.ok) throw new Error('Could not load referrals.');
                 const referrals = await response.json();
-                
                 referralCountElem.innerText = referrals.length;
-                referralListElem.innerHTML = ''; // পুরনো তালিকা পরিষ্কার করুন
-
-                if (referrals.length === 0) {
-                    referralListElem.innerHTML = '<li>You have no referrals yet.</li>';
-                    return;
-                }
+                referralListElem.innerHTML = '';
+                if (referrals.length === 0) { referralListElem.innerHTML = '<li>No referrals yet.</li>'; return; }
                 referrals.forEach(ref => {
-                    const listItem = document.createElement('li');
-                    const joinDate = new Date(ref.created_at).toLocaleDateString("en-GB"); // dd/mm/yyyy ফরম্যাট
-                    listItem.innerText = `${ref.first_name} - Joined on ${joinDate}`;
-                    referralListElem.appendChild(listItem);
+                    const li = document.createElement('li');
+                    const date = new Date(ref.created_at).toLocaleDateString("en-GB");
+                    li.innerText = `${ref.first_name} - Joined on ${date}`;
+                    referralListElem.appendChild(li);
                 });
-            } catch (error) {
-                referralListElem.innerHTML = `<li>${error.message}</li>`;
             }
-        }
-        
-        // --- Monetag Rewarded Interstitial অ্যাড দেখানোর ফাংশন ---
-        function showMonetagAd() {
-            return new Promise((resolve, reject) => {
-                if (typeof show_9504423 === 'function') {
-                    show_9504423().then(() => resolve(true)).catch(error => reject(error));
-                } else {
-                    reject(new Error("Ad service is not available."));
+
+            function showMonetagAd() {
+                return new Promise((resolve, reject) => {
+                    if (typeof show_9504423 === 'function') {
+                        show_9504423().then(() => resolve(true)).catch(error => reject(error));
+                    } else { reject(new Error("Ad service not available.")); }
+                });
+            }
+
+            startTaskBtn.addEventListener('click', async () => {
+                if (startTaskBtn.disabled) return;
+                startTaskBtn.disabled = true; startTaskBtn.innerText = "Loading Ad...";
+                try {
+                    await showMonetagAd();
+                    const response = await fetch('/api/complete_task', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: tg.initDataUnsafe.user.id }) });
+                    const result = await response.json();
+                    if (result.success) {
+                        tg.HapticFeedback.notificationOccurred('success');
+                        tg.showAlert(result.message); userData = result.user_data; updateAllUI();
+                    } else { showError(result.message || "Task failed."); updateAllUI(); }
+                } catch (error) {
+                    showError("Ad could not be shown. Please try again.");
+                    startTaskBtn.disabled = false; startTaskBtn.innerText = "Watch Ad (+200 RiX)";
                 }
             });
-        }
-
-        // --- সব বাটনের জন্য Event Listeners ---
-        startTaskBtn.addEventListener('click', async () => {
-            if (startTaskBtn.disabled) return;
-            startTaskBtn.disabled = true;
-            startTaskBtn.innerText = "Loading Ad...";
             
-            try {
-                await showMonetagAd();
-                // অ্যাড দেখা শেষ হলে, সার্ভারে রিওয়ার্ড ক্লেইম করুন
-                const response = await fetch('/api/complete_task', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: tg.initDataUnsafe.user.id })
-                });
-                const result = await response.json();
-                if (result.success) {
-                    tg.HapticFeedback.notificationOccurred('success');
-                    tg.showAlert(result.message);
-                    userData = result.user_data;
-                    updateAllUI();
-                } else {
-                    showError(result.message || "Task failed.");
-                    updateAllUI();
-                }
-            } catch (error) {
-                showError("Ad could not be shown. Please try again.");
-                startTaskBtn.disabled = false;
-                startTaskBtn.innerText = "Watch Ad (+200 RiX)";
-            }
-        });
-        
-        miningClaimBtn.addEventListener('click', async () => {
-            if (!userData) return showError("User data not loaded.");
-            miningClaimBtn.disabled = true;
-            miningClaimBtn.innerText = "Claiming...";
-            try {
-                const response = await fetch('/api/claim_mining', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: userData.user_id })
-                });
-                const result = await response.json();
-                if (result.success) {
-                    tg.HapticFeedback.notificationOccurred('success');
-                    tg.showAlert(result.message);
-                    userData = result.user_data;
-                    updateAllUI();
-                } else {
-                    showError(result.message);
-                    updateMiningStatus();
-                }
-            } catch (error) {
-                showError("An error occurred during mining claim.");
-            }
-        });
+            miningClaimBtn.addEventListener('click', async () => {
+                if (!userData) return showError("User data not loaded.");
+                miningClaimBtn.disabled = true; miningClaimBtn.innerText = "Claiming...";
+                try {
+                    const response = await fetch('/api/claim_mining', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: userData.user_id }) });
+                    const result = await response.json();
+                    if (result.success) {
+                        tg.HapticFeedback.notificationOccurred('success');
+                        tg.showAlert(result.message); userData = result.user_data; updateAllUI();
+                    } else { showError(result.message); updateMiningStatus(); }
+                } catch (error) { showError("An error occurred."); }
+            });
 
-        copyBtn.addEventListener('click', () => {
-            const linkInput = document.getElementById('referral-link');
-            navigator.clipboard.writeText(linkInput.value)
-                .then(() => tg.showAlert('Referral link copied!'))
-                .catch(() => showError('Could not copy link.'));
-        });
+            copyBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(document.getElementById('referral-link').value).then(() => tg.showAlert('Referral link copied!'));
+            });
 
-        // --- Helper Functions ---
-        function formatBalance(num) { return new Intl.NumberFormat().format(Math.floor(num)); }
-        function pad(n) { return n < 10 ? '0' + n : n; }
-        function showError(message) { tg.showAlert(message); }
-        
-        // --- Initial Load ---
-        loadUserData();
-   
+            function formatBalance(num) { return new Intl.NumberFormat().format(Math.floor(num)); }
+            function pad(n) { return n < 10 ? '0' + n : n; }
+            function showError(message) { tg.showAlert(message); }
+            
+            loadUserData();
+        });
     </script>
 </body>
 </html>
