@@ -7,7 +7,6 @@ from supabase import create_client, Client
 from datetime import datetime, timedelta, timezone
 from dateutil.parser import parse
 
-
 # --- ধাপ ২: এনভায়রনমেন্ট ভেরিয়েবল এবং ক্লায়েন্ট ---
 TOKEN = os.environ.get("TELEGRAM_TOKEN")
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
@@ -118,7 +117,7 @@ def mini_app_handler():
     except Exception as e:
         print(f"Error serving mini-app: {e}"); return "Mini App not found", 404
 
-# --- মিনি অ্যাপের জন্য API এন্ডপয়েন্টস (নির্ভরযোগ্য সংস্করণ) ---
+# --- মিনি অ্যাপের জন্য API এন্ডপয়েন্টস (আরও নির্ভরযোগ্য) ---
 @app.route('/api/user_data', methods=['GET'])
 def get_user_data():
     try:
@@ -150,16 +149,27 @@ def claim_reward_api():
         data = request.json; user_id = data.get('user_id')
         if not user_id: return jsonify({"error": "User ID is required"}), 400
         user_id = int(user_id)
-        user_data = supabase.table('users').select('last_mining_claim').eq('user_id', user_id).single().execute()
-        if not user_data.data: return jsonify({"error": "User not found"}), 404
         
-        last_claim_str = user_data.data.get('last_mining_claim')
+        user_response = supabase.table('users').select('last_mining_claim').eq('user_id', user_id).execute()
+        
+        if not user_response.data: 
+            return jsonify({"error": "User not found"}), 404
+
+        user_data = user_response.data[0]
+        last_claim_str = user_data.get('last_mining_claim')
         can_claim = False
-        if not last_claim_str: can_claim = True
+
+        if not last_claim_str:
+            can_claim = True
         else:
-            last_claim_time = parse(last_claim_str)
-            next_claim_time = last_claim_time + timedelta(hours=MINING_INTERVAL_HOURS)
-            if datetime.now(timezone.utc) >= next_claim_time: can_claim = True
+            try:
+                last_claim_time = parse(last_claim_str)
+                next_claim_time = last_claim_time + timedelta(hours=MINING_INTERVAL_HOURS)
+                if datetime.now(timezone.utc) >= next_claim_time:
+                    can_claim = True
+            except (TypeError, ValueError) as e:
+                print(f"Date parsing error for user {user_id}: {e}. Allowing claim.")
+                can_claim = True
 
         if can_claim:
             update_rix_balance(user_id, MINING_REWARD)
@@ -169,8 +179,10 @@ def claim_reward_api():
             return jsonify({"success": True, "message": f"{MINING_REWARD} RiX claimed!", "user_data": new_user_data.data})
         else:
             return jsonify({"success": False, "message": "Not yet time to claim."}), 400
+
     except Exception as e:
-        print(f"Error claiming reward: {e}"); return jsonify({"error": "Internal server error"}), 500
+        print(f"Error claiming reward: {e}")
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
 @app.route('/', methods=['GET', 'POST'])
 def webhook_handler():
