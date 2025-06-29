@@ -21,8 +21,8 @@ VERCEL_URL = os.environ.get("VERCEL_URL")
 bot = Bot(token=TOKEN)
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# FastAPI অ্যাপ তৈরি করুন
-app = FastAPI(docs_url=None, redoc_url=None) # docs বন্ধ করা হলো
+# FastAPI অ্যাপ তৈরি করুন (কোনো অটোমেটিক docs পেজ ছাড়া)
+app = FastAPI(docs_url=None, redoc_url=None)
 
 # --- ধাপ ৪: গেমের নিয়ম এবং সহায়ক ফাংশন ---
 NEW_USER_BONUS = 2000
@@ -31,11 +31,9 @@ MINING_REWARD = 200
 MINING_INTERVAL_HOURS = 6
 
 def generate_referral_code():
-    """একটি ইউনিক ৮-সংখ্যার রেফারেল কোড তৈরি করে।"""
     return str(uuid.uuid4())[:8]
 
 def update_rix_balance(user_id, amount_to_add):
-    """ব্যবহারকারীর RiX ব্যালেন্স আপডেট করে।"""
     try:
         user_data = supabase.table('users').select('rix_balance').eq('user_id', user_id).single().execute()
         current_balance = user_data.data.get('rix_balance', 0) if user_data.data else 0
@@ -45,7 +43,6 @@ def update_rix_balance(user_id, amount_to_add):
         print(f"ব্যালেন্স আপডেট করতে সমস্যা (User ID: {user_id}): {e}")
 
 def get_main_menu_keyboard():
-    """প্রধান মেনুর জন্য বাটন তৈরি করে।"""
     keyboard = [
         [InlineKeyboardButton("⛏️ মাইনিং হাব", callback_data="mining_hub")],
         [InlineKeyboardButton("💰 আমার ব্যালেন্স", callback_data="check_balance")],
@@ -55,7 +52,6 @@ def get_main_menu_keyboard():
 
 # --- ধাপ ৫: মূল অ্যাসিঙ্ক্রোনাস লজিক ---
 async def handle_update(update_data):
-    """টেলিগ্রাম থেকে আসা সমস্ত আপডেট এখানে প্রসেস করা হয়।"""
     update = Update.de_json(update_data, bot)
     
     if update.message and update.message.text:
@@ -132,28 +128,35 @@ async def handle_update(update_data):
             await query.edit_message_text(text="প্রধান মেনু:", reply_markup=get_main_menu_keyboard())
 
 
-# --- ধাপ ৬: Vercel এর জন্য ওয়েব সার্ভার (FastAPI ব্যবহার করে) ---
+# --- ধাপ ৬: Vercel এর জন্য ওয়েব সার্ভার (Catch-all রুট) ---
 
-@app.post("/")
-async def process_update(request: Request):
-    """টেলিগ্রাম থেকে আসা POST রিকোয়েস্ট হ্যান্ডেল করে।"""
-    try:
-        update_data = await request.json()
-        await handle_update(update_data)
-    except Exception as e:
-        print(f"Error in webhook handler: {e}")
-    return Response(status_code=200)
-
-@app.get("/setwebhook")
-async def set_webhook_route():
-    """বটের জন্য Webhook সেট করে।"""
-    try:
-        if not VERCEL_URL:
-            return Response(content="Error: VERCEL_URL environment variable is not set.", status_code=500)
+@app.api_route("/{full_path:path}", methods=["GET", "POST"])
+async def universal_handler(request: Request, full_path: str):
+    """
+    এই একটি ফাংশনই GET এবং POST উভয় রিকোয়েস্ট এবং সব পাথ হ্যান্ডেল করবে।
+    """
+    # যদি রিকোয়েস্টটি /setwebhook পাথে আসে (GET)
+    if full_path == "setwebhook" and request.method == "GET":
+        try:
+            if not VERCEL_URL:
+                return Response(content="Error: VERCEL_URL is not set.", status_code=500)
+            
+            webhook_url = f"https://{VERCEL_URL}/"
+            await bot.set_webhook(url=webhook_url, allowed_updates=['message', 'callback_query'])
+            return Response(content="Webhook সফলভাবে সেট করা হয়েছে!")
+        except Exception as e:
+            print(f"CRITICAL Error in set_webhook_route: {e}")
+            return Response(content=f"An internal error occurred: {e}", status_code=500)
+    
+    # যদি রিকোয়েস্টটি root path (/) এ আসে এবং POST হয় (টেলিগ্রাম থেকে)
+    elif full_path == "" and request.method == "POST":
+        try:
+            update_data = await request.json()
+            await handle_update(update_data)
+        except Exception as e:
+            print(f"Error in webhook handler: {e}")
+        return Response(status_code=200)
         
-        webhook_url = f"https://{VERCEL_URL}/"
-        await bot.set_webhook(url=webhook_url, allowed_updates=['message', 'callback_query'])
-        return Response(content="Webhook সফলভাবে সেট করা হয়েছে!")
-    except Exception as e:
-        print(f"CRITICAL Error in set_webhook_route: {e}")
-        return Response(content=f"An internal error occurred: {e}", status_code=500)
+    # অন্য কোনো পাথ বা মেথডের জন্য 404 Not Found
+    else:
+        return Response(content="Not Found", status_code=404)
