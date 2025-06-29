@@ -1,4 +1,4 @@
-# --- ধাপ ১: প্রয়োজনীয় লাইব্রেরি ইম্পোর্ট (কোনো asyncio নেই) ---
+# --- ধাপ ১: প্রয়োজনীয় লাইব্রেরি ইম্পোর্ট ---
 import os
 import uuid
 from flask import Flask, request, Response, send_from_directory
@@ -108,13 +108,16 @@ def handle_update(update_data):
 
 # --- ধাপ ৫: Vercel এর জন্য ওয়েব সার্ভার ---
 
-# এই রুটটি মিনি অ্যাপের HTML ফাইল সার্ভ করবে
+# এই রুটটি মিনি অ্যাপের HTML ফাইল সার্ভ করবে (সঠিক পাথ সহ)
 @app.route('/app', methods=['GET'])
 def mini_app_handler():
     try:
-        return send_from_directory('frontend', 'index.html')
+        # Vercel-এর পরিবেশের জন্য অ্যাবসোলিউট পাথ তৈরি করুন
+        root_path = os.path.join(os.path.dirname(__file__), '..')
+        frontend_path = os.path.join(root_path, 'frontend')
+        return send_from_directory(frontend_path, 'index.html')
     except Exception as e:
-        print(f"Error serving mini-app: {e}")
+        print(f"Error serving mini-app from path: {e}")
         return "Mini App not found", 404
 
 # এই রুটটি বট এবং Webhook সেট করার জন্য
