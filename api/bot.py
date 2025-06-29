@@ -1,5 +1,4 @@
-# --- ধাপ ১: nest_asyncio (সবচেয়ে গুরুত্বপূর্ণ, এটি অবশ্যই প্রথমে থাকবে) ---
-# এটি 'Event loop is closed' এরর সমাধান করে
+# --- ধাপ ১: nest_asyncio (এটি একেবারে শুরুতে থাকবে বাড়তি নিরাপত্তার জন্য) ---
 import nest_asyncio
 nest_asyncio.apply()
 
@@ -7,7 +6,7 @@ nest_asyncio.apply()
 import os
 import asyncio
 import uuid
-from flask import Flask, request
+from fastapi import FastAPI, Request, Response
 from telegram import Update, Bot, InlineKeyboardButton, InlineKeyboardMarkup
 from supabase import create_client, Client
 from datetime import datetime, timedelta, timezone
@@ -21,15 +20,15 @@ VERCEL_URL = os.environ.get("VERCEL_URL")
 
 bot = Bot(token=TOKEN)
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-app = Flask(__name__)
 
-# --- ধাপ ৪: গেমের নিয়ম ---
+# FastAPI অ্যাপ তৈরি করুন
+app = FastAPI(docs_url=None, redoc_url=None) # docs বন্ধ করা হলো
+
+# --- ধাপ ৪: গেমের নিয়ম এবং সহায়ক ফাংশন ---
 NEW_USER_BONUS = 2000
 REFERRAL_BONUS = 1000
 MINING_REWARD = 200
 MINING_INTERVAL_HOURS = 6
-
-# --- ধাপ ৫: সহায়ক ফাংশন ---
 
 def generate_referral_code():
     """একটি ইউনিক ৮-সংখ্যার রেফারেল কোড তৈরি করে।"""
@@ -54,13 +53,11 @@ def get_main_menu_keyboard():
     ]
     return InlineKeyboardMarkup(keyboard)
 
-# --- ধাপ ৬: মূল অ্যাসিঙ্ক্রোনাস লজিক ---
-
+# --- ধাপ ৫: মূল অ্যাসিঙ্ক্রোনাস লজিক ---
 async def handle_update(update_data):
     """টেলিগ্রাম থেকে আসা সমস্ত আপডেট এখানে প্রসেস করা হয়।"""
     update = Update.de_json(update_data, bot)
     
-    # যখন কোনো টেক্সট মেসেজ আসে
     if update.message and update.message.text:
         user = update.message.from_user
         chat_id = update.message.chat_id
@@ -87,7 +84,6 @@ async def handle_update(update_data):
             
             await bot.send_message(chat_id=chat_id, text=welcome_message, reply_markup=get_main_menu_keyboard())
 
-    # যখন কোনো ইনলাইন বাটন ক্লিক করা হয়
     elif update.callback_query:
         query = update.callback_query
         user_id = query.from_user.id
@@ -135,30 +131,29 @@ async def handle_update(update_data):
         elif query.data == "back_to_menu":
             await query.edit_message_text(text="প্রধান মেনু:", reply_markup=get_main_menu_keyboard())
 
-# --- ধাপ ৭: Vercel এর জন্য ওয়েব সার্ভার ---
 
-async def set_webhook_async(url):
-    """Webhook সেট করার অ্যাসিঙ্ক্রোনাস কাজটি করে।"""
-    await bot.set_webhook(url=url, allowed_updates=['message', 'callback_query'])
+# --- ধাপ ৬: Vercel এর জন্য ওয়েব সার্ভার (FastAPI ব্যবহার করে) ---
 
-@app.route('/', methods=['POST'])
-def webhook_handler():
-    """টেলিগ্রাম থেকে আসা সমস্ত POST রিকোয়েস্ট হ্যান্ডেল করে।"""
+@app.post("/")
+async def process_update(request: Request):
+    """টেলিগ্রাম থেকে আসা POST রিকোয়েস্ট হ্যান্ডেল করে।"""
     try:
-        asyncio.run(handle_update(request.json))
+        update_data = await request.json()
+        await handle_update(update_data)
     except Exception as e:
-        print(f"Error in webhook_handler: {e}")
-    return 'ok'
+        print(f"Error in webhook handler: {e}")
+    return Response(status_code=200)
 
-@app.route('/setwebhook', methods=['GET'])
-def set_webhook_route():
+@app.get("/setwebhook")
+async def set_webhook_route():
     """বটের জন্য Webhook সেট করে।"""
     try:
         if not VERCEL_URL:
-            return "Error: VERCEL_URL environment variable is not set.", 500
+            return Response(content="Error: VERCEL_URL environment variable is not set.", status_code=500)
+        
         webhook_url = f"https://{VERCEL_URL}/"
-        asyncio.run(set_webhook_async(webhook_url))
-        return "Webhook সফলভাবে সেট করা হয়েছে!"
+        await bot.set_webhook(url=webhook_url, allowed_updates=['message', 'callback_query'])
+        return Response(content="Webhook সফলভাবে সেট করা হয়েছে!")
     except Exception as e:
         print(f"CRITICAL Error in set_webhook_route: {e}")
-        return f"An internal error occurred: {e}", 500
+        return Response(content=f"An internal error occurred: {e}", status_code=500)
