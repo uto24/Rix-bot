@@ -5,115 +5,164 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>RiX Mining App</title>
     <style>
-        :root {
-            --tg-theme-bg-color: #212121;
-            --tg-theme-text-color: #ffffff;
-            --tg-theme-button-color: #5288c1;
-            --tg-theme-button-text-color: #ffffff;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--tg-theme-bg-color);
-            color: var(--tg-theme-text-color);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
-            text-align: center;
-        }
-        .container {
-            width: 100%;
-        }
-        #user-info {
-            font-size: 1.2em;
-            margin-bottom: 20px;
-        }
-        .coin-display {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5em;
-            font-weight: bold;
-            margin: 20px 0;
-        }
-        .coin-icon {
-            width: 45px;
-            height: 45px;
-            margin-right: 15px;
-            animation: spin 4s linear infinite;
-        }
-        #claim-button {
-            width: 100%;
-            background-color: var(--tg-theme-button-color);
-            color: var(--tg-theme-button-text-color);
-            border: none;
-            padding: 15px 0;
-            font-size: 1.2em;
-            font-weight: bold;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: transform 0.1s ease;
-        }
-        #claim-button:active {
-            transform: scale(0.98);
-        }
-        #timer {
-            margin-top: 15px;
-            font-size: 0.9em;
-            opacity: 0.8;
-        }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+        /* CSS কোড অপরিবর্তিত, এখানে পেস্ট করতে পারেন অথবা আলাদা ফাইল রাখতে পারেন */
+        :root { --tg-theme-bg-color: #212121; --tg-theme-text-color: #ffffff; --tg-theme-button-color: #5288c1; --tg-theme-button-text-color: #ffffff; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); display: flex; flex-direction: column; justify-content: space-between; align-items: center; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; text-align: center; }
+        .main-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; }
+        .profile-section { font-size: 1.2em; }
+        .coin-display { display: flex; align-items: center; justify-content: center; font-size: 2.5em; font-weight: bold; margin: 20px 0; }
+        .coin-icon { width: 45px; height: 45px; margin-right: 15px; animation: spin 4s linear infinite; }
+        #claim-button { width: 100%; background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); border: none; padding: 15px 0; font-size: 1.2em; font-weight: bold; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; }
+        #claim-button:disabled { background-color: #3e4d58; cursor: not-allowed; }
+        #timer { margin-top: 15px; font-size: 0.9em; opacity: 0.8; }
+        .bottom-nav { width: 100%; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #444; }
+        .nav-button { background: none; border: none; color: var(--tg-theme-text-color); opacity: 0.7; cursor: pointer; font-size: 1.1em; padding: 10px; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div id="user-info">Loading user...</div>
+
+    <div class="main-content">
+        <div class="profile-section" id="user-info">Loading...</div>
         <div class="coin-display">
             <img src="https://i.ibb.co/Y0K2A5T/rix-coin.png" alt="RiX Coin" class="coin-icon">
             <span id="balance">...</span>
         </div>
-        <button id="claim-button">Claim Reward</button>
-        <p id="timer">Next claim in: ...</p>
+        <button id="claim-button" disabled>Loading...</button>
+        <p id="timer">...</p>
+    </div>
+
+    <div class="bottom-nav">
+        <button class="nav-button" id="referral-btn">🤝 Refer</button>
+        <button class="nav-button" id="task-btn">✅ Tasks</button>
+        <button class="nav-button" id="profile-btn">👤 Profile</button>
     </div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        // টেলিগ্রাম ওয়েব অ্যাপ অবজেক্ট ইনিশিয়ালাইজ করুন
         const tg = window.Telegram.WebApp;
         tg.ready();
-        tg.expand(); // অ্যাপটিকে পূর্ণ স্ক্রিনে দেখান
+        tg.expand();
 
-        // ব্যবহারকারীর তথ্য দেখান
-        const user = tg.initDataUnsafe.user;
-        if (user && user.first_name) {
-            document.getElementById('user-info').innerText = `Welcome, ${user.first_name}!`;
-        } else {
-            document.getElementById('user-info').innerText = `Welcome, Player!`;
-        }
+        const claimButton = document.getElementById('claim-button');
+        const balanceElem = document.getElementById('balance');
+        const timerElem = document.getElementById('timer');
+        const userInfoElem = document.getElementById('user-info');
         
-        // ডেমো ডেটা (এখানে আপনি ব্যাকএন্ড থেকে আসল ডেটা আনবেন)
-        document.getElementById('balance').innerText = '12,345';
-        document.getElementById('timer').innerText = 'Next claim in: 02:34:15';
+        let claimInterval;
+        let userData = null;
 
-        // যখন ক্লেইম বাটনে ক্লিক করা হবে
-        document.getElementById('claim-button').addEventListener('click', () => {
-            // বটে একটি মেসেজ পাঠান যে ব্যবহারকারী ক্লেইম করেছে
-            const dataToSend = { action: 'claim_from_mini_app' };
-            tg.sendData(JSON.stringify(dataToSend));
+        // ব্যবহারকারীর ডেটা লোড করার ফাংশন
+        async function loadUserData() {
+            if (!tg.initDataUnsafe.user) {
+                showError("Cannot authenticate user.");
+                return;
+            }
+            const userId = tg.initDataUnsafe.user.id;
             
-            // একটি হ্যাপটিক ফিডব্যাক দিন
-            tg.HapticFeedback.notificationOccurred('success');
+            try {
+                const response = await fetch(`/api/user_data?user_id=${userId}`);
+                if (!response.ok) throw new Error('Failed to fetch user data');
+                
+                userData = await response.json();
+                updateUI(userData);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
 
-            // অ্যাপটি বন্ধ করতে পারেন অথবা একটি মেসেজ দেখাতে পারেন
-            // tg.close(); 
+        // UI আপডেট করার ফাংশন
+        function updateUI(data) {
+            userInfoElem.innerText = `Welcome, ${data.first_name}!`;
+            balanceElem.innerText = formatBalance(data.rix_balance);
+            
+            const miningIntervalHours = 6;
+            const lastClaimTime = data.last_mining_claim ? new Date(data.last_mining_claim) : null;
+            
+            if (claimInterval) clearInterval(claimInterval);
+
+            if (!lastClaimTime) {
+                claimButton.disabled = false;
+                claimButton.innerText = "Claim Reward";
+                timerElem.innerText = "Ready to claim your first reward!";
+                return;
+            }
+
+            const nextClaimTime = new Date(lastClaimTime.getTime() + miningIntervalHours * 60 * 60 * 1000);
+
+            claimInterval = setInterval(() => {
+                const now = new Date();
+                const timeLeft = nextClaimTime - now;
+
+                if (timeLeft <= 0) {
+                    claimButton.disabled = false;
+                    claimButton.innerText = "Claim Reward";
+                    timerElem.innerText = "Ready to claim!";
+                    clearInterval(claimInterval);
+                } else {
+                    claimButton.disabled = true;
+                    claimButton.innerText = "Mining...";
+                    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                    timerElem.innerText = `Next claim in: ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+                }
+            }, 1000);
+        }
+
+        // ক্লেইম বাটনের ইভেন্ট
+        claimButton.addEventListener('click', async () => {
+            claimButton.disabled = true;
+            claimButton.innerText = "Claiming...";
+            tg.HapticFeedback.impactOccurred('light');
+
+            try {
+                const response = await fetch('/api/claim_reward', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: tg.initDataUnsafe.user.id })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    tg.HapticFeedback.notificationOccurred('success');
+                    updateUI(result.user_data);
+                } else {
+                    showError(result.message || "Failed to claim.");
+                    // UI আবার রিফ্রেশ করুন
+                    loadUserData();
+                }
+            } catch (error) {
+                showError("An error occurred.");
+                loadUserData();
+            }
         });
+
+        // অন্যান্য নেভিগেশন বাটন
+        document.getElementById('referral-btn').addEventListener('click', () => {
+             tg.showAlert(`Your referral code is: ${userData ? userData.referral_code : 'loading...'}`);
+        });
+         document.getElementById('task-btn').addEventListener('click', () => {
+             tg.showAlert("Ad watch and other tasks are coming soon!");
+        });
+         document.getElementById('profile-btn').addEventListener('click', () => {
+             tg.showAlert(`User ID: ${userData ? userData.user_id : '...'} \nBalance: ${userData ? formatBalance(userData.rix_balance) : '...'}`);
+        });
+
+        // Helper functions
+        function formatBalance(num) {
+            return new Intl.NumberFormat().format(Math.floor(num));
+        }
+        function pad(n) {
+            return n < 10 ? '0' + n : n;
+        }
+        function showError(message) {
+            tg.showAlert(message);
+        }
+
+        // অ্যাপ লোড হলে ডেটা আনুন
+        loadUserData();
 
     </script>
 </body>
