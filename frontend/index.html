@@ -37,7 +37,11 @@
         <button class="nav-button" id="task-btn">✅ Tasks</button>
         <button class="nav-button" id="profile-btn">👤 Profile</button>
     </div>
-
+    
+    
+    
+    
+     <!-- ... (body এবং অন্যান্য html ট্যাগ অপরিবর্তিত) ... -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         const tg = window.Telegram.WebApp;
@@ -52,17 +56,27 @@
         let claimInterval;
         let userData = null;
 
-        // ব্যবহারকারীর ডেটা লোড করার ফাংশন
+        // ব্যবহারকারীর ডেটা লোড করার ফাংশন (আরও নির্ভরযোগ্য)
         async function loadUserData() {
-            if (!tg.initDataUnsafe.user) {
-                showError("Cannot authenticate user.");
+            if (!tg.initDataUnsafe.user || !tg.initDataUnsafe.user.id) {
+                showError("User authentication failed. Please restart the app.");
                 return;
             }
-            const userId = tg.initDataUnsafe.user.id;
+
+            const user = tg.initDataUnsafe.user;
+            // ব্যাকএন্ডে user_id, first_name, username পাঠানো হচ্ছে
+            const queryParams = new URLSearchParams({
+                user_id: user.id,
+                first_name: user.first_name || 'Player',
+                username: user.username || ''
+            });
             
             try {
-                const response = await fetch(`/api/user_data?user_id=${userId}`);
-                if (!response.ok) throw new Error('Failed to fetch user data');
+                const response = await fetch(`/api/user_data?${queryParams.toString()}`);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to fetch user data');
+                }
                 
                 userData = await response.json();
                 updateUI(userData);
@@ -73,6 +87,7 @@
 
         // UI আপডেট করার ফাংশন
         function updateUI(data) {
+            if (!data) return;
             userInfoElem.innerText = `Welcome, ${data.first_name}!`;
             balanceElem.innerText = formatBalance(data.rix_balance);
             
@@ -88,7 +103,7 @@
                 return;
             }
 
-            const nextClaimTime = new Date(lastClaimTime.getTime() + miningIntervalHours * 60 * 60 * 1000);
+            const nextClaimTime = new Date(last_claim_time.getTime() + miningIntervalHours * 60 * 60 * 1000);
 
             claimInterval = setInterval(() => {
                 const now = new Date();
@@ -112,6 +127,10 @@
 
         // ক্লেইম বাটনের ইভেন্ট
         claimButton.addEventListener('click', async () => {
+            if (!tg.initDataUnsafe.user || !tg.initDataUnsafe.user.id) {
+                showError("User authentication failed.");
+                return;
+            }
             claimButton.disabled = true;
             claimButton.innerText = "Claiming...";
             tg.HapticFeedback.impactOccurred('light');
@@ -122,48 +141,45 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ user_id: tg.initDataUnsafe.user.id })
                 });
-
                 const result = await response.json();
-
                 if (result.success) {
                     tg.HapticFeedback.notificationOccurred('success');
                     updateUI(result.user_data);
                 } else {
                     showError(result.message || "Failed to claim.");
-                    // UI আবার রিফ্রেশ করুন
                     loadUserData();
                 }
             } catch (error) {
-                showError("An error occurred.");
+                showError("An error occurred during claim.");
                 loadUserData();
             }
         });
 
         // অন্যান্য নেভিগেশন বাটন
         document.getElementById('referral-btn').addEventListener('click', () => {
-             tg.showAlert(`Your referral code is: ${userData ? userData.referral_code : 'loading...'}`);
+             if (!userData) { showError("User data not loaded yet."); return; }
+             const botUsername = "YourBotUsername"; // এখানে আপনার বটের ইউজারনেম দিন
+             const refLink = `https://t.me/${botUsername}?start=${userData.referral_code}`;
+             tg.showAlert(`Share this link to refer friends:\n\n${refLink}`);
         });
-         document.getElementById('task-btn').addEventListener('click', () => {
+        document.getElementById('task-btn').addEventListener('click', () => {
              tg.showAlert("Ad watch and other tasks are coming soon!");
         });
-         document.getElementById('profile-btn').addEventListener('click', () => {
-             tg.showAlert(`User ID: ${userData ? userData.user_id : '...'} \nBalance: ${userData ? formatBalance(userData.rix_balance) : '...'}`);
+        document.getElementById('profile-btn').addEventListener('click', () => {
+             if (!userData) { showError("User data not loaded yet."); return; }
+             tg.showAlert(`User Profile:\n\nID: ${userData.user_id}\nBalance: ${formatBalance(userData.rix_balance)}`);
         });
 
         // Helper functions
-        function formatBalance(num) {
-            return new Intl.NumberFormat().format(Math.floor(num));
-        }
-        function pad(n) {
-            return n < 10 ? '0' + n : n;
-        }
-        function showError(message) {
-            tg.showAlert(message);
-        }
+        function formatBalance(num) { return new Intl.NumberFormat().format(Math.floor(num)); }
+        function pad(n) { return n < 10 ? '0' + n : n; }
+        function showError(message) { tg.showAlert(message); }
 
         // অ্যাপ লোড হলে ডেটা আনুন
         loadUserData();
 
     </script>
+    <!-- ... (বাকি html ট্যাগ অপরিবর্তিত) ... -->
+
 </body>
 </html>
