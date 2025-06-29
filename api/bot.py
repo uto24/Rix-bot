@@ -18,8 +18,7 @@ bot = Bot(token=TOKEN)
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 app = Flask(__name__)
 
-# --- CORS সক্রিয় করা (সবচেয়ে গুরুত্বপূর্ণ পরিবর্তন) ---
-# এটি আপনার ফ্রন্টএন্ডকে ব্যাকএন্ড API থেকে ডেটা গ্রহণ করতে দেবে।
+# --- CORS সক্রিয় করা ---
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # --- ধাপ ৩: গেমের নিয়ম এবং সহায়ক ফাংশন ---
@@ -83,6 +82,7 @@ def mini_app_handler():
     except Exception as e:
         print(f"Error serving mini-app: {e}"); return "Mini App not found", 404
 
+# --- মিনি অ্যাপের জন্য API এন্ডপয়েন্টস (সবচেয়ে নির্ভরযোগ্য সংস্করণ) ---
 @app.route('/api/user_data', methods=['GET'])
 def get_user_data():
     try:
@@ -92,19 +92,38 @@ def get_user_data():
         if not user_id_str: return jsonify({"error": "User ID is required"}), 400
         user_id = int(user_id_str)
         
+        # ধাপ ১: ব্যবহারকারীকে খোঁজা
         response = supabase.table('users').select('*').eq('user_id', user_id).execute()
 
+        # যদি ব্যবহারকারী পাওয়া যায়
         if response.data:
             user_data = response.data[0]
             today_str = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+            
+            # ধাপ ২: টাস্ক রিসেট করার প্রয়োজন আছে কিনা তা চেক করা
             if str(user_data.get('last_task_reset')) != today_str:
-                update_response = supabase.table('users').update({'daily_tasks_completed': 0, 'last_task_reset': today_str}).eq('user_id', user_id).select().execute()
-                return jsonify(update_response.data[0])
+                print(f"Resetting daily tasks for user {user_id}")
+                # ধাপ ২.ক: টাস্ক রিসেট করুন (UPDATE)
+                supabase.table('users').update({
+                    'daily_tasks_completed': 0, 'last_task_reset': today_str
+                }).eq('user_id', user_id).execute()
+                # ধাপ ২.খ: আপডেটেড ডেটা আবার পড়ুন (SELECT)
+                updated_response = supabase.table('users').select('*').eq('user_id', user_id).single().execute()
+                return jsonify(updated_response.data)
+            
             return jsonify(user_data)
+        
+        # যদি ব্যবহারকারী পাওয়া না যায়
         else:
             print(f"User {user_id} not found. Creating new user.")
-            new_user_data = { 'user_id': user_id, 'first_name': first_name, 'username': username, 'referral_code': generate_referral_code(), 'rix_balance': NEW_USER_BONUS, 'daily_tasks_completed': 0, 'last_task_reset': datetime.now(timezone.utc).strftime('%Y-%m-%d') }
-            insert_response = supabase.table('users').insert(new_user_data).select().execute()
+            # ধাপ ৩: নতুন ব্যবহারকারী তৈরি করুন (INSERT)
+            new_user_data = {
+                'user_id': user_id, 'first_name': first_name, 'username': username,
+                'referral_code': generate_referral_code(), 'rix_balance': NEW_USER_BONUS,
+                'daily_tasks_completed': 0, 'last_task_reset': datetime.now(timezone.utc).strftime('%Y-%m-%d')
+            }
+            insert_response = supabase.table('users').insert(new_user_data).execute()
+            # ইনসার্ট করা ডেটাটি ফেরত পাঠান
             return jsonify(insert_response.data[0])
     except Exception as e:
         print(f"Error in get_user_data: {e}"); return jsonify({"error": f"Internal server error: {e}"}), 500
@@ -139,6 +158,11 @@ def webhook_handler():
         except Exception as e: print(f"Error: {e}")
         return Response(status=200)
     elif request.method == 'GET':
-        webhook_url = f"https://{VERCEL_URL}/"; bot.set_webhook(url=webhook_url, allowed_updates=['message', 'callback_query', 'web_app_data'])
-        return "Webhook set"
+        try:
+            if not VERCEL_URL: return "Error: VERCEL_URL is not set.", 500
+            webhook_url = f"https://{VERCEL_URL}/"; is_set = bot.set_webhook(url=webhook_url, allowed_updates=['message', 'callback_query', 'web_app_data'])
+            if is_set: return "Webhook সফলভাবে সেট করা হয়েছে!"
+            else: return "Webhook সেট করতে ব্যর্থ।", 500
+        except Exception as e:
+            print(f"CRITICAL Error in webhook_route: {e}"); return f"An internal error occurred: {e}", 500
     return "Unsupported"
