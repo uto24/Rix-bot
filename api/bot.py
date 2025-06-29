@@ -49,11 +49,7 @@ def get_main_menu_keyboard():
 def handle_update(update_data):
     update = Update.de_json(update_data, bot)
     
-    # Mini App থেকে আসা ডেটা হ্যান্ডেল করার জন্য
     if update.message and update.message.web_app_data:
-        user_id = update.message.from_user.id
-        # এখানে আপনি web_app_data থেকে আসা ডেটা নিয়ে কাজ করতে পারেন
-        # যেমন: bot.send_message(chat_id=user_id, text="Mini App থেকে মেসেজ পেয়েছি!")
         print(f"Received data from Mini App: {update.message.web_app_data.data}")
         return
 
@@ -71,7 +67,7 @@ def handle_update(update_data):
                 if referrer_id and referrer_id != user.id:
                     update_rix_balance(referrer_id, REFERRAL_BONUS)
                     bot.send_message(chat_id=referrer_id, text=f"🎉 অভিনন্দন! {user.first_name} আপনার রেফারেলে যোগ দিয়েছেন। আপনি {REFERRAL_BONUS} RiX বোনাস পেয়েছেন!")
-                supabase.table('users').insert({'user_id': user.id, 'first_name': user.first_name, 'referral_code': generate_referral_code(), 'rix_balance': initial_balance, 'referred_by': referrer_id}).execute()
+                supabase.table('users').insert({'user_id': user.id, 'first_name': user.first_name, 'username': user.username or '', 'referral_code': generate_referral_code(), 'rix_balance': initial_balance, 'referred_by': referrer_id}).execute()
                 welcome_message = f"স্বাগতম, {user.first_name}! আপনি বোনাস হিসেবে {NEW_USER_BONUS} RiX পেয়েছেন!"
             else:
                 welcome_message = f"ফিরে আসার জন্য ধন্যবাদ, {user.first_name}!"
@@ -112,7 +108,6 @@ def handle_update(update_data):
 
 # --- ধাপ ৫: Vercel এর জন্য ওয়েব সার্ভার ---
 
-# এই রুটটি মিনি অ্যাপের HTML ফাইল সার্ভ করবে
 @app.route('/app', methods=['GET'])
 def mini_app_handler():
     try:
@@ -120,22 +115,33 @@ def mini_app_handler():
         frontend_path = os.path.join(root_path, 'frontend')
         return send_from_directory(frontend_path, 'index.html')
     except Exception as e:
-        print(f"Error serving mini-app: {e}")
-        return "Mini App not found", 404
+        print(f"Error serving mini-app: {e}"); return "Mini App not found", 404
 
-# --- মিনি অ্যাপের জন্য নতুন API এন্ডপয়েন্টস ---
-
+# --- মিনি অ্যাপের জন্য API এন্ডপয়েন্টস (নির্ভরযোগ্য সংস্করণ) ---
 @app.route('/api/user_data', methods=['GET'])
 def get_user_data():
     try:
-        user_id = request.args.get('user_id')
-        if not user_id: return jsonify({"error": "User ID is required"}), 400
-        user_id = int(user_id)
-        user_data = supabase.table('users').select('*').eq('user_id', user_id).single().execute()
-        if user_data.data: return jsonify(user_data.data)
-        else: return jsonify({"error": "User not found"}), 404
+        user_id_str = request.args.get('user_id')
+        first_name = request.args.get('first_name', 'Player')
+        username = request.args.get('username', '')
+        
+        if not user_id_str: return jsonify({"error": "User ID is required"}), 400
+        user_id = int(user_id_str)
+        
+        response = supabase.table('users').select('*').eq('user_id', user_id).execute()
+
+        if response.data:
+            return jsonify(response.data[0])
+        else:
+            print(f"User {user_id} not found. Creating a new entry.")
+            new_user_data = {
+                'user_id': user_id, 'first_name': first_name, 'username': username,
+                'referral_code': generate_referral_code(), 'rix_balance': NEW_USER_BONUS
+            }
+            supabase.table('users').insert(new_user_data).execute()
+            return jsonify(new_user_data)
     except Exception as e:
-        print(f"Error getting user data: {e}"); return jsonify({"error": "Internal server error"}), 500
+        print(f"Error getting or creating user data: {e}"); return jsonify({"error": "Internal server error"}), 500
 
 @app.route('/api/claim_reward', methods=['POST'])
 def claim_reward_api():
@@ -165,7 +171,6 @@ def claim_reward_api():
     except Exception as e:
         print(f"Error claiming reward: {e}"); return jsonify({"error": "Internal server error"}), 500
 
-# এই রুটটি বট এবং Webhook সেট করার জন্য
 @app.route('/', methods=['GET', 'POST'])
 def webhook_handler():
     if request.method == 'POST':
