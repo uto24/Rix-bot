@@ -1,5 +1,6 @@
 python-telegram-bot
-flask
+fastapi
+uvicorn
 supabase
 python-dateutil
 nest_asyncio
