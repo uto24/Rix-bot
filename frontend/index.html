@@ -103,7 +103,7 @@
                 return;
             }
 
-            const nextClaimTime = new Date(last_claim_time.getTime() + miningIntervalHours * 60 * 60 * 1000);
+            const nextClaimTime = new Date(lastClaimTime.getTime() + miningIntervalHours * 60 * 60 * 1000);
 
             claimInterval = setInterval(() => {
                 const now = new Date();
