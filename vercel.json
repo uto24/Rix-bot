@@ -12,6 +12,10 @@
       "dest": "api/bot.py"
     },
     {
+      "src": "/api/(.*)",
+      "dest": "api/bot.py"
+    },
+    {
       "src": "/static/(.*)",
       "dest": "/frontend/$1"
     },
