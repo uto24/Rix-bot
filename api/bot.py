@@ -1,7 +1,7 @@
 # --- ধাপ ১: প্রয়োজনীয় লাইব্রেরি ইম্পোর্ট ---
 import os
 import uuid
-from flask import Flask, request, Response, send_from_directory
+from flask import Flask, request, Response, send_from_directory, jsonify
 from telegram import Update, Bot, InlineKeyboardButton, InlineKeyboardMarkup
 from supabase import create_client, Client
 from datetime import datetime, timedelta, timezone
@@ -36,11 +36,8 @@ def update_rix_balance(user_id, amount_to_add):
         print(f"ব্যালেন্স আপডেট করতে সমস্যা (User ID: {user_id}): {e}")
 
 def get_main_menu_keyboard():
-    # আপনার Vercel URL ব্যবহার করে মিনি অ্যাপের URL তৈরি করুন
     mini_app_url = f"https://{VERCEL_URL}/app" if VERCEL_URL else ""
-    
     keyboard = [
-        # নতুন মিনি অ্যাপ বাটন
         [InlineKeyboardButton("💎 ওপেন মাইনিং অ্যাপ", web_app={'url': mini_app_url})],
         [InlineKeyboardButton("⛏️ মাইনিং হাব (টেক্সট)", callback_data="mining_hub")],
         [InlineKeyboardButton("💰 আমার ব্যালেন্স", callback_data="check_balance")],
@@ -48,13 +45,20 @@ def get_main_menu_keyboard():
     ]
     return InlineKeyboardMarkup(keyboard)
 
-# --- ধাপ ৪: মূল সিঙ্ক্রোনাস লজিক ---
+# --- ধাপ ৪: মূল সিঙ্ক্রোনাস লজিক (বটের জন্য) ---
 def handle_update(update_data):
     update = Update.de_json(update_data, bot)
     
+    # Mini App থেকে আসা ডেটা হ্যান্ডেল করার জন্য
+    if update.message and update.message.web_app_data:
+        user_id = update.message.from_user.id
+        # এখানে আপনি web_app_data থেকে আসা ডেটা নিয়ে কাজ করতে পারেন
+        # যেমন: bot.send_message(chat_id=user_id, text="Mini App থেকে মেসেজ পেয়েছি!")
+        print(f"Received data from Mini App: {update.message.web_app_data.data}")
+        return
+
     if update.message and update.message.text:
         user = update.message.from_user; chat_id = update.message.chat_id; text = update.message.text
-        
         if text.startswith('/start'):
             command_parts = text.split(); referrer_id = None
             if len(command_parts) > 1:
@@ -108,17 +112,58 @@ def handle_update(update_data):
 
 # --- ধাপ ৫: Vercel এর জন্য ওয়েব সার্ভার ---
 
-# এই রুটটি মিনি অ্যাপের HTML ফাইল সার্ভ করবে (সঠিক পাথ সহ)
+# এই রুটটি মিনি অ্যাপের HTML ফাইল সার্ভ করবে
 @app.route('/app', methods=['GET'])
 def mini_app_handler():
     try:
-        # Vercel-এর পরিবেশের জন্য অ্যাবসোলিউট পাথ তৈরি করুন
         root_path = os.path.join(os.path.dirname(__file__), '..')
         frontend_path = os.path.join(root_path, 'frontend')
         return send_from_directory(frontend_path, 'index.html')
     except Exception as e:
-        print(f"Error serving mini-app from path: {e}")
+        print(f"Error serving mini-app: {e}")
         return "Mini App not found", 404
+
+# --- মিনি অ্যাপের জন্য নতুন API এন্ডপয়েন্টস ---
+
+@app.route('/api/user_data', methods=['GET'])
+def get_user_data():
+    try:
+        user_id = request.args.get('user_id')
+        if not user_id: return jsonify({"error": "User ID is required"}), 400
+        user_id = int(user_id)
+        user_data = supabase.table('users').select('*').eq('user_id', user_id).single().execute()
+        if user_data.data: return jsonify(user_data.data)
+        else: return jsonify({"error": "User not found"}), 404
+    except Exception as e:
+        print(f"Error getting user data: {e}"); return jsonify({"error": "Internal server error"}), 500
+
+@app.route('/api/claim_reward', methods=['POST'])
+def claim_reward_api():
+    try:
+        data = request.json; user_id = data.get('user_id')
+        if not user_id: return jsonify({"error": "User ID is required"}), 400
+        user_id = int(user_id)
+        user_data = supabase.table('users').select('last_mining_claim').eq('user_id', user_id).single().execute()
+        if not user_data.data: return jsonify({"error": "User not found"}), 404
+        
+        last_claim_str = user_data.data.get('last_mining_claim')
+        can_claim = False
+        if not last_claim_str: can_claim = True
+        else:
+            last_claim_time = parse(last_claim_str)
+            next_claim_time = last_claim_time + timedelta(hours=MINING_INTERVAL_HOURS)
+            if datetime.now(timezone.utc) >= next_claim_time: can_claim = True
+
+        if can_claim:
+            update_rix_balance(user_id, MINING_REWARD)
+            now_utc = datetime.now(timezone.utc).isoformat()
+            supabase.table('users').update({'last_mining_claim': now_utc}).eq('user_id', user_id).execute()
+            new_user_data = supabase.table('users').select('*').eq('user_id', user_id).single().execute()
+            return jsonify({"success": True, "message": f"{MINING_REWARD} RiX claimed!", "user_data": new_user_data.data})
+        else:
+            return jsonify({"success": False, "message": "Not yet time to claim."}), 400
+    except Exception as e:
+        print(f"Error claiming reward: {e}"); return jsonify({"error": "Internal server error"}), 500
 
 # এই রুটটি বট এবং Webhook সেট করার জন্য
 @app.route('/', methods=['GET', 'POST'])
@@ -130,7 +175,7 @@ def webhook_handler():
     elif request.method == 'GET':
         try:
             if not VERCEL_URL: return "Error: VERCEL_URL is not set.", 500
-            webhook_url = f"https://{VERCEL_URL}/"; is_set = bot.set_webhook(url=webhook_url, allowed_updates=['message', 'callback_query'])
+            webhook_url = f"https://{VERCEL_URL}/"; is_set = bot.set_webhook(url=webhook_url, allowed_updates=['message', 'callback_query', 'web_app_data'])
             if is_set: return "Webhook সফলভাবে সেট করা হয়েছে!"
             else: return "Webhook সেট করতে ব্যর্থ।", 500
         except Exception as e:
