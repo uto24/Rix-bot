@@ -47,39 +47,76 @@ def get_main_menu_keyboard():
 # --- ধাপ ৫: মূল সিঙ্ক্রোনাস লজিক (বটের জন্য) ---
 def handle_update(update_data):
     update = Update.de_json(update_data, bot)
+    
+    if update.message and update.message.web_app_data:
+        print(f"Received data from Mini App: {update.message.web_app_data.data}")
+        return
+
     if update.message and update.message.text and update.message.text.startswith('/start'):
-        user = update.message.from_user; chat_id = update.message.chat_id; text = update.message.text
-        print(f"Received /start from user: {user.id}")
+        user = update.message.from_user
+        chat_id = update.message.chat_id
+        text = update.message.text
         
-        command_parts = text.split(); referrer_id = None
+        print(f"--- /start command initiated by user: {user.id} ---")
+
+        command_parts = text.split()
+        referrer_id = None
+
         if len(command_parts) > 1:
             referral_code = command_parts[1]
+            print(f"Attempting to find referrer with code: {referral_code}")
             try:
                 referrer_response = supabase.table('users').select('user_id').eq('referral_code', referral_code).limit(1).execute()
                 if referrer_response.data:
                     referrer_id = int(referrer_response.data[0]['user_id'])
-                    print(f"Found referrer: {referrer_id}")
-            except Exception as e: print(f"Error looking up referrer: {e}")
+                    print(f"SUCCESS: Found referrer with ID: {referrer_id}")
+                else:
+                    print(f"INFO: Referral code '{referral_code}' not found.")
+            except Exception as e:
+                print(f"ERROR: Exception while looking up referrer: {e}")
         
         try:
             existing_user_response = supabase.table('users').select('user_id').eq('user_id', user.id).limit(1).execute()
+            
             if not existing_user_response.data:
-                print(f"Creating new profile for user {user.id}")
+                print(f"INFO: User {user.id} is new. Proceeding to create profile.")
                 initial_balance = NEW_USER_BONUS
+                
                 if referrer_id and referrer_id != user.id:
-                    print(f"Awarding bonus to referrer {referrer_id}")
+                    print(f"INFO: Awarding {REFERRAL_BONUS} RiX to referrer {referrer_id}")
                     update_rix_balance(referrer_id, REFERRAL_BONUS)
                     try:
-                        bot.send_message(chat_id=referrer_id, text=f"🎉 Congratulations! {user.first_name} has joined using your link. You've received a {REFERRAL_BONUS} RiX bonus!")
-                    except Exception as e: print(f"Could not send notification to referrer {referrer_id}: {e}")
+                        bot.send_message(
+                            chat_id=referrer_id,
+                            text=f"🎉 Congratulations! {user.first_name} has joined using your referral link. You've received a {REFERRAL_BONUS} RiX bonus!"
+                        )
+                    except Exception as e:
+                        print(f"WARNING: Could not send notification to referrer {referrer_id}: {e}")
                 
-                new_user_payload = { 'user_id': user.id, 'first_name': user.first_name, 'username': user.username or '', 'referral_code': generate_referral_code(), 'rix_balance': initial_balance, 'referred_by': referrer_id, 'daily_tasks_completed': 0, 'last_task_reset': datetime.now(timezone.utc).strftime('%Y-%m-%d') }
-                supabase.table('users').insert(new_user_payload).execute()
-                welcome_message = f"স্বাগতম, {user.first_name}! আপনি বোনাস হিসেবে {NEW_USER_BONUS} RiX পেয়েছেন!"
+                new_user_payload = {
+                    'user_id': user.id, 'first_name': user.first_name, 'username': user.username or '',
+                    'referral_code': generate_referral_code(), 'rix_balance': initial_balance,
+                    'referred_by': referrer_id, 'daily_tasks_completed': 0,
+                    'last_task_reset': datetime.now(timezone.utc).strftime('%Y-%m-%d')
+                }
+                
+                print(f"INFO: Inserting new user with payload: {new_user_payload}")
+                insert_response = supabase.table('users').insert(new_user_payload).execute()
+                
+                if len(insert_response.data) > 0:
+                    print(f"SUCCESS: User {user.id} created successfully.")
+                    welcome_message = f"স্বাগতম, {user.first_name}! আপনি বোনাস হিসেবে {NEW_USER_BONUS} RiX পেয়েছেন!"
+                else:
+                    print(f"CRITICAL: Failed to insert user {user.id}. Response: {insert_response}")
+                    welcome_message = "Sorry, there was an error creating your profile. Please try again."
             else:
+                print(f"INFO: User {user.id} already exists.")
                 welcome_message = f"ফিরে আসার জন্য ধন্যবাদ, {user.first_name}!"
+            
             bot.send_message(chat_id=chat_id, text=welcome_message, reply_markup=get_main_menu_keyboard())
-        except Exception as e: print(f"CRITICAL Error in /start handler: {e}")
+
+        except Exception as e:
+            print(f"CRITICAL: Unhandled exception in /start handler for user {user.id}: {e}")
 
 # --- ধাপ ৬: Vercel এর জন্য ওয়েব সার্ভার এবং API এন্ডপয়েন্টস ---
 @app.route('/app')
@@ -87,7 +124,8 @@ def mini_app_handler():
     try:
         root_path = os.path.join(os.path.dirname(__file__), '..')
         return send_from_directory(os.path.join(root_path, 'frontend'), 'index.html')
-    except Exception as e: return "Mini App not found", 404
+    except Exception as e:
+        print(f"Error serving mini-app: {e}"); return "Mini App not found", 404
 
 @app.route('/api/user_data', methods=['GET'])
 def get_user_data():
@@ -105,7 +143,7 @@ def get_user_data():
             return jsonify(user_data)
         else:
             first_name = request.args.get('first_name', 'Player'); username = request.args.get('username', '')
-            new_user_data = { 'user_id': user_id, 'first_name': first_name, 'username': username, 'referral_code': generate_referral_code(), 'rix_balance': NEW_USER_BONUS, 'daily_tasks_completed': 0, 'last_task_reset': datetime.now(timezone.utc).strftime('%Y-%m-%d') }
+            new_user_data = {'user_id': user_id, 'first_name': first_name, 'username': username, 'referral_code': generate_referral_code(), 'rix_balance': NEW_USER_BONUS, 'daily_tasks_completed': 0, 'last_task_reset': datetime.now(timezone.utc).strftime('%Y-%m-%d')}
             insert_response = supabase.table('users').insert(new_user_data).execute()
             if insert_response.data: return jsonify(insert_response.data[0])
             else: return jsonify({"error": "Could not create profile"}), 500
@@ -160,7 +198,7 @@ def claim_mining_api():
             return jsonify({"success": True, "message": f"{MINING_REWARD} RiX successfully claimed!", "user_data": new_user_data})
         else:
             next_claim_time = parse(last_claim_str) + timedelta(hours=MINING_COOLDOWN_HOURS)
-            return jsonify({"success": False, "message": "Not time to claim yet.", "next_claim_time": next_claim_time.isoformat()})
+            return jsonify({"success": False, "message": "It's not time to claim yet.", "next_claim_time": next_claim_time.isoformat()})
     except Exception as e: return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
 @app.route('/', methods=['GET', 'POST'])
