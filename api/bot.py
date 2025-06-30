@@ -48,82 +48,84 @@ def get_main_menu_keyboard():
 def handle_update(update_data):
     update = Update.de_json(update_data, bot)
     
-    # শুধুমাত্র /start কমান্ডের জন্য কাজ করবে
+    if update.message and update.message.web_app_data:
+        print(f"Received data from Mini App: {update.message.web_app_data.data}")
+        return
+
     if update.message and update.message.text and update.message.text.startswith('/start'):
         user = update.message.from_user
         chat_id = update.message.chat_id
         text = update.message.text
         
-        print(f"\n--- /START COMMAND PROCESSING FOR USER: {user.id} ---")
+        print("\n--- NEW /START COMMAND ---")
+        print(f"User: {user.id} ({user.first_name})")
+        print(f"Full command: '{text}'")
 
-        # ধাপ ১: ব্যবহারকারী ডাটাবেসে আছে কিনা তা চেক করুন
-        try:
-            existing_user_res = supabase.table('users').select('user_id, referral_code').eq('user_id', user.id).limit(1).execute()
-            is_new_user = not bool(existing_user_res.data)
-        except Exception as e:
-            print(f"CRITICAL: Could not check if user exists. DB Error: {e}")
-            return
+        command_parts = text.split()
+        referrer_id = None
+        referral_code_used = None
 
-        # ধাপ ২: যদি ব্যবহারকারী নতুন হয়, তাহলে রেফারেল প্রক্রিয়া শুরু করুন
-        if is_new_user:
-            print(f"User {user.id} is a NEW USER.")
-            referrer_id = None
-            command_parts = text.split()
-            
-            if len(command_parts) > 1:
-                referral_code = command_parts[1]
-                print(f"Attempting to find referrer with code: {referral_code}")
-                try:
-                    ref_res = supabase.table('users').select('user_id').eq('referral_code', referral_code).limit(1).execute()
-                    if ref_res.data:
-                        referrer_id = int(ref_res.data[0]['user_id'])
-                        print(f"SUCCESS: Referrer found: {referrer_id}")
-                    else:
-                        print(f"WARNING: Referral code '{referral_code}' not valid.")
-                except Exception as e:
-                    print(f"ERROR: Exception during referrer lookup: {e}")
-            
-            # নতুন ব্যবহারকারীকে ডাটাবেসে যোগ করুন
+        if len(command_parts) > 1:
+            referral_code_used = command_parts[1]
+            print(f"Referral code found in command: {referral_code_used}")
             try:
+                referrer_response = supabase.table('users').select('user_id').eq('referral_code', referral_code_used).execute()
+                print(f"Supabase response for referrer lookup: {referrer_response.data}")
+                if referrer_response.data:
+                    referrer_id = int(referrer_response.data[0]['user_id'])
+                    print(f"SUCCESS: Referrer ID found: {referrer_id}")
+                else:
+                    print(f"WARNING: Referrer not found for code '{referral_code_used}'.")
+            except Exception as e:
+                print(f"ERROR looking up referrer: {e}")
+        
+        try:
+            existing_user_response = supabase.table('users').select('user_id').eq('user_id', user.id).execute()
+            
+            if not existing_user_response.data:
+                print(f"User {user.id} is new. Proceeding to create profile.")
+                
+                if referrer_id and referrer_id != user.id:
+                    print(f"Awarding bonus to referrer: {referrer_id}")
+                    update_rix_balance(referrer_id, REFERRAL_BONUS)
+                    try:
+                        bot.send_message(
+                            chat_id=referrer_id,
+                            text=f"🎉 Congratulations! {user.first_name} has joined using your referral link. You've received a {REFERRAL_BONUS} RiX bonus!"
+                        )
+                    except Exception as e:
+                        print(f"WARNING: Could not send notification to referrer {referrer_id}: {e}")
+                else:
+                    print("No valid referrer found or user is referring themselves.")
+
                 new_user_payload = {
-                    'user_id': user.id, 'first_name': user.first_name, 'username': user.username or '',
-                    'referral_code': generate_referral_code(), 'rix_balance': NEW_USER_BONUS,
+                    'user_id': user.id,
+                    'first_name': user.first_name,
+                    'username': user.username or '',
+                    'referral_code': generate_referral_code(),
+                    'rix_balance': NEW_USER_BONUS,
                     'referred_by': referrer_id,
-                    'daily_tasks_completed': 0, 'last_task_reset': datetime.now(timezone.utc).strftime('%Y-%m-%d')
+                    'daily_tasks_completed': 0,
+                    'last_task_reset': datetime.now(timezone.utc).strftime('%Y-%m-%d')
                 }
+                
                 print(f"Inserting payload into DB: {new_user_payload}")
                 insert_response = supabase.table('users').insert(new_user_payload).execute()
 
                 if len(insert_response.data) > 0:
-                    print(f"SUCCESS: New user {user.id} inserted into DB.")
-                    # রেফারারকে বোনাস দিন
-                    if referrer_id and referrer_id != user.id:
-                        print(f"Awarding bonus to referrer {referrer_id}")
-                        update_rix_balance(referrer_id, REFERRAL_BONUS)
-                        try:
-                            bot.send_message(chat_id=referrer_id, text=f"🎉 Congratulations! {user.first_name} has joined using your link. You've received a {REFERRAL_BONUS} RiX bonus!")
-                        except Exception as e:
-                            print(f"WARNING: Could not send notification to referrer {referrer_id}: {e}")
+                    print(f"SUCCESS: User {user.id} created.")
                     welcome_message = f"স্বাগতম, {user.first_name}! আপনি বোনাস হিসেবে {NEW_USER_BONUS} RiX পেয়েছেন!"
                 else:
                     print(f"CRITICAL: Failed to insert user {user.id}. DB Response: {insert_response}")
-                    welcome_message = "Sorry, there was an error creating your profile."
-            except Exception as e:
-                print(f"CRITICAL: Could not insert new user. DB Error: {e}")
-                welcome_message = "Sorry, an error occurred."
-        
-        # যদি ব্যবহারকারী পুরনো হয়
-        else:
-            print(f"User {user.id} is an EXISTING USER.")
-            existing_user_data = existing_user_res.data[0]
-            if not existing_user_data.get('referral_code'):
-                print(f"Existing user {user.id} has no referral code. Generating one.")
-                new_code = generate_referral_code()
-                supabase.table('users').update({'referral_code': new_code}).eq('user_id', user.id).execute()
-            welcome_message = f"ফিরে আসার জন্য ধন্যবাদ, {user.first_name}!"
+                    welcome_message = "Error creating profile."
+            else:
+                print(f"User {user.id} already exists.")
+                welcome_message = f"ফিরে আসার জন্য ধন্যবাদ, {user.first_name}!"
+            
+            bot.send_message(chat_id=chat_id, text=welcome_message, reply_markup=get_main_menu_keyboard())
+        except Exception as e:
+            print(f"CRITICAL: Unhandled exception in /start: {e}")
 
-        # সবশেষে, ব্যবহারকারীকে মেনু পাঠান
-        bot.send_message(chat_id=chat_id, text=welcome_message, reply_markup=get_main_menu_keyboard())
 
 # --- ধাপ ৬: Vercel এর জন্য ওয়েব সার্ভার এবং API এন্ডপয়েন্টস ---
 @app.route('/app')
@@ -131,7 +133,8 @@ def mini_app_handler():
     try:
         root_path = os.path.join(os.path.dirname(__file__), '..')
         return send_from_directory(os.path.join(root_path, 'frontend'), 'index.html')
-    except Exception as e: return "Mini App not found", 404
+    except Exception as e:
+        print(f"Error serving mini-app: {e}"); return "Mini App not found", 404
 
 @app.route('/api/user_data', methods=['GET'])
 def get_user_data():
@@ -139,7 +142,7 @@ def get_user_data():
         user_id_str = request.args.get('user_id');
         if not user_id_str: return jsonify({"error": "User ID is required"}), 400
         user_id = int(user_id_str)
-        response = supabase.table('users').select('*').eq('user_id', user_id).limit(1).execute()
+        response = supabase.table('users').select('*').eq('user_id', user_id).execute()
         if response.data:
             user_data = response.data[0]; today_str = datetime.now(timezone.utc).strftime('%Y-%m-%d')
             if str(user_data.get('last_task_reset')) != today_str:
@@ -148,8 +151,11 @@ def get_user_data():
                 return jsonify(updated_response.data)
             return jsonify(user_data)
         else:
-            # এখন আর নতুন ব্যবহারকারী তৈরি করা হচ্ছে না, কারণ এটি /start এ হ্যান্ডেল করা হয়
-            return jsonify({"error": "Profile not found. Please /start the bot first."}), 404
+            first_name = request.args.get('first_name', 'Player'); username = request.args.get('username', '')
+            new_user_data = {'user_id': user_id, 'first_name': first_name, 'username': username, 'referral_code': generate_referral_code(), 'rix_balance': NEW_USER_BONUS, 'daily_tasks_completed': 0, 'last_task_reset': datetime.now(timezone.utc).strftime('%Y-%m-%d')}
+            insert_response = supabase.table('users').insert(new_user_data).execute()
+            if insert_response.data: return jsonify(insert_response.data[0])
+            else: return jsonify({"error": "Could not create profile"}), 500
     except Exception as e: return jsonify({"error": f"Internal server error: {e}"}), 500
 
 @app.route('/api/get_referrals', methods=['GET'])
@@ -211,6 +217,9 @@ def webhook_handler():
         except Exception as e: print(f"Error: {e}")
         return Response(status=200)
     elif request.method == 'GET':
-        webhook_url = f"https://{VERCEL_URL}/"; bot.set_webhook(url=webhook_url)
-        return "Webhook set"
+        try:
+            webhook_url = f"https://{VERCEL_URL}/"; bot.set_webhook(url=webhook_url)
+            return "Webhook set"
+        except Exception as e:
+            return f"Error setting webhook: {e}", 500
     return "Unsupported"
