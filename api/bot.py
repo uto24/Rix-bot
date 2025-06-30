@@ -3,7 +3,7 @@ import os
 import uuid
 from flask import Flask, request, Response, send_from_directory, jsonify
 from flask_cors import CORS
-from telegram import Update, Bot, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, Bot, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from supabase import create_client, Client
 from datetime import datetime, timedelta, timezone
 from dateutil.parser import parse
@@ -31,6 +31,7 @@ MINING_COOLDOWN_HOURS = 8
 def generate_referral_code(): return str(uuid.uuid4())[:8]
 
 def update_rix_balance(user_id, amount_to_add):
+    # ... (অপরিবর্তিত) ...
     try:
         user_data_res = supabase.table('users').select('rix_balance').eq('user_id', user_id).limit(1).execute()
         if user_data_res.data:
@@ -47,94 +48,52 @@ def get_main_menu_keyboard():
 # --- ধাপ ৫: মূল সিঙ্ক্রোনাস লজিক (বটের জন্য) ---
 def handle_update(update_data):
     update = Update.de_json(update_data, bot)
-    
-    if update.message and update.message.web_app_data:
-        print(f"Received data from Mini App: {update.message.web_app_data.data}")
-        return
-
     if update.message and update.message.text and update.message.text.startswith('/start'):
-        user = update.message.from_user
-        chat_id = update.message.chat_id
-        text = update.message.text
-        
-        print("\n--- NEW /START COMMAND ---")
-        print(f"User: {user.id} ({user.first_name})")
-        print(f"Full command: '{text}'")
-
-        command_parts = text.split()
-        referrer_id = None
-        referral_code_used = None
-
-        if len(command_parts) > 1:
-            referral_code_used = command_parts[1]
-            print(f"Referral code found in command: {referral_code_used}")
-            try:
-                referrer_response = supabase.table('users').select('user_id').eq('referral_code', referral_code_used).execute()
-                print(f"Supabase response for referrer lookup: {referrer_response.data}")
-                if referrer_response.data:
-                    referrer_id = int(referrer_response.data[0]['user_id'])
-                    print(f"SUCCESS: Referrer ID found: {referrer_id}")
-                else:
-                    print(f"WARNING: Referrer not found for code '{referral_code_used}'.")
-            except Exception as e:
-                print(f"ERROR looking up referrer: {e}")
+        user = update.message.from_user; chat_id = update.message.chat_id
         
         try:
-            existing_user_response = supabase.table('users').select('user_id').eq('user_id', user.id).execute()
+            existing_user_response = supabase.table('users').select('user_id').eq('user_id', user.id).limit(1).execute()
             
+            # --- নতুন ব্যবহারকারীর জন্য স্বাগত বার্তা ---
             if not existing_user_response.data:
-                print(f"User {user.id} is new. Proceeding to create profile.")
+                # নতুন ব্যবহারকারীকে ডাটাবেসে যোগ করুন
+                supabase.table('users').insert({
+                    'user_id': user.id, 'first_name': user.first_name, 'username': user.username or '',
+                    'referral_code': generate_referral_code(), 'rix_balance': NEW_USER_BONUS,
+                    'daily_tasks_completed': 0, 'last_task_reset': datetime.now(timezone.utc).strftime('%Y-%m-%d')
+                }).execute()
                 
-                if referrer_id and referrer_id != user.id:
-                    print(f"Awarding bonus to referrer: {referrer_id}")
-                    update_rix_balance(referrer_id, REFERRAL_BONUS)
-                    try:
-                        bot.send_message(
-                            chat_id=referrer_id,
-                            text=f"🎉 Congratulations! {user.first_name} has joined using your referral link. You've received a {REFERRAL_BONUS} RiX bonus!"
-                        )
-                    except Exception as e:
-                        print(f"WARNING: Could not send notification to referrer {referrer_id}: {e}")
-                else:
-                    print("No valid referrer found or user is referring themselves.")
-
-                new_user_payload = {
-                    'user_id': user.id,
-                    'first_name': user.first_name,
-                    'username': user.username or '',
-                    'referral_code': generate_referral_code(),
-                    'rix_balance': NEW_USER_BONUS,
-                    'referred_by': referrer_id,
-                    'daily_tasks_completed': 0,
-                    'last_task_reset': datetime.now(timezone.utc).strftime('%Y-%m-%d')
-                }
-                
-                print(f"Inserting payload into DB: {new_user_payload}")
-                insert_response = supabase.table('users').insert(new_user_payload).execute()
-
-                if len(insert_response.data) > 0:
-                    print(f"SUCCESS: User {user.id} created.")
-                    welcome_message = f"স্বাগতম, {user.first_name}! আপনি বোনাস হিসেবে {NEW_USER_BONUS} RiX পেয়েছেন!"
-                else:
-                    print(f"CRITICAL: Failed to insert user {user.id}. DB Response: {insert_response}")
-                    welcome_message = "Error creating profile."
+                # নতুন ব্যবহারকারীর জন্য বিশেষ মেসেজ
+                welcome_message = (
+                    f"🎉 **স্বাগতম, {user.first_name}!** 🎉\n\n"
+                    "আপনি সফলভাবে RiX Earn জগতে প্রবেশ করেছেন।\n\n"
+                    f"আপনার অ্যাকাউন্ট খোলার জন্য উপহার হিসেবে **{NEW_USER_BONUS} RiX Coin** বোনাস দেওয়া হয়েছে! 🎁\n\n"
+                    "এখনই নিচের বাটনে ক্লিক করে আমাদের মিনি অ্যাপটি খুলুন এবং আয় করা শুরু করুন। শুভকামনা!"
+                )
             else:
-                print(f"User {user.id} already exists.")
-                welcome_message = f"ফিরে আসার জন্য ধন্যবাদ, {user.first_name}!"
+                # পুরনো ব্যবহারকারীর জন্য মেসেজ
+                welcome_message = f"👋 **ফিরে আসার জন্য ধন্যবাদ, {user.first_name}!**\n\nনিচের বাটনে ক্লিক করে আয় করা চালিয়ে যান।"
             
-            bot.send_message(chat_id=chat_id, text=welcome_message, reply_markup=get_main_menu_keyboard())
+            # ব্যবহারকারীকে মেনু পাঠান
+            bot.send_message(
+                chat_id=chat_id, 
+                text=welcome_message, 
+                reply_markup=get_main_menu_keyboard(),
+                parse_mode=ParseMode.MARKDOWN # মেসেজটিকে সুন্দর দেখানোর জন্য
+            )
         except Exception as e:
-            print(f"CRITICAL: Unhandled exception in /start: {e}")
+            print(f"CRITICAL Error in /start handler: {e}")
+            bot.send_message(chat_id=chat_id, text="দুঃখিত, একটি সমস্যা হয়েছে। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।")
 
 
 # --- ধাপ ৬: Vercel এর জন্য ওয়েব সার্ভার এবং API এন্ডপয়েন্টস ---
+# ... (এই অংশটুকু সম্পূর্ণ অপরিবর্তিত থাকবে) ...
 @app.route('/app')
 def mini_app_handler():
     try:
         root_path = os.path.join(os.path.dirname(__file__), '..')
         return send_from_directory(os.path.join(root_path, 'frontend'), 'index.html')
-    except Exception as e:
-        print(f"Error serving mini-app: {e}"); return "Mini App not found", 404
+    except Exception as e: return "Mini App not found", 404
 
 @app.route('/api/user_data', methods=['GET'])
 def get_user_data():
@@ -152,7 +111,7 @@ def get_user_data():
             return jsonify(user_data)
         else:
             first_name = request.args.get('first_name', 'Player'); username = request.args.get('username', '')
-            new_user_data = {'user_id': user_id, 'first_name': first_name, 'username': username, 'referral_code': generate_referral_code(), 'rix_balance': NEW_USER_BONUS, 'daily_tasks_completed': 0, 'last_task_reset': datetime.now(timezone.utc).strftime('%Y-%m-%d')}
+            new_user_data = { 'user_id': user_id, 'first_name': first_name, 'username': username, 'referral_code': generate_referral_code(), 'rix_balance': NEW_USER_BONUS, 'daily_tasks_completed': 0, 'last_task_reset': datetime.now(timezone.utc).strftime('%Y-%m-%d') }
             insert_response = supabase.table('users').insert(new_user_data).execute()
             if insert_response.data: return jsonify(insert_response.data[0])
             else: return jsonify({"error": "Could not create profile"}), 500
@@ -207,7 +166,7 @@ def claim_mining_api():
             return jsonify({"success": True, "message": f"{MINING_REWARD} RiX successfully claimed!", "user_data": new_user_data})
         else:
             next_claim_time = parse(last_claim_str) + timedelta(hours=MINING_COOLDOWN_HOURS)
-            return jsonify({"success": False, "message": "It's not time to claim yet.", "next_claim_time": next_claim_time.isoformat()})
+            return jsonify({"success": False, "message": "Not time to claim yet.", "next_claim_time": next_claim_time.isoformat()})
     except Exception as e: return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
 @app.route('/', methods=['GET', 'POST'])
@@ -217,9 +176,6 @@ def webhook_handler():
         except Exception as e: print(f"Error: {e}")
         return Response(status=200)
     elif request.method == 'GET':
-        try:
-            webhook_url = f"https://{VERCEL_URL}/"; bot.set_webhook(url=webhook_url)
-            return "Webhook set"
-        except Exception as e:
-            return f"Error setting webhook: {e}", 500
+        webhook_url = f"https://{VERCEL_URL}/"; bot.set_webhook(url=webhook_url)
+        return "Webhook set"
     return "Unsupported"
