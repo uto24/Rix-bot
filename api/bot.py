@@ -57,33 +57,36 @@ def handle_update(update_data):
         chat_id = update.message.chat_id
         text = update.message.text
         
-        print(f"--- /start command initiated by user: {user.id} ---")
+        print("\n--- NEW /START COMMAND ---")
+        print(f"User: {user.id} ({user.first_name})")
+        print(f"Full command: '{text}'")
 
         command_parts = text.split()
         referrer_id = None
+        referral_code_used = None
 
         if len(command_parts) > 1:
-            referral_code = command_parts[1]
-            print(f"Attempting to find referrer with code: {referral_code}")
+            referral_code_used = command_parts[1]
+            print(f"Referral code found in command: {referral_code_used}")
             try:
-                referrer_response = supabase.table('users').select('user_id').eq('referral_code', referral_code).limit(1).execute()
+                referrer_response = supabase.table('users').select('user_id').eq('referral_code', referral_code_used).execute()
+                print(f"Supabase response for referrer lookup: {referrer_response.data}")
                 if referrer_response.data:
                     referrer_id = int(referrer_response.data[0]['user_id'])
-                    print(f"SUCCESS: Found referrer with ID: {referrer_id}")
+                    print(f"SUCCESS: Referrer ID found: {referrer_id}")
                 else:
-                    print(f"INFO: Referral code '{referral_code}' not found.")
+                    print(f"WARNING: Referrer not found for code '{referral_code_used}'.")
             except Exception as e:
-                print(f"ERROR: Exception while looking up referrer: {e}")
+                print(f"ERROR looking up referrer: {e}")
         
         try:
-            existing_user_response = supabase.table('users').select('user_id').eq('user_id', user.id).limit(1).execute()
+            existing_user_response = supabase.table('users').select('user_id').eq('user_id', user.id).execute()
             
             if not existing_user_response.data:
-                print(f"INFO: User {user.id} is new. Proceeding to create profile.")
-                initial_balance = NEW_USER_BONUS
+                print(f"User {user.id} is new. Proceeding to create profile.")
                 
                 if referrer_id and referrer_id != user.id:
-                    print(f"INFO: Awarding {REFERRAL_BONUS} RiX to referrer {referrer_id}")
+                    print(f"Awarding bonus to referrer: {referrer_id}")
                     update_rix_balance(referrer_id, REFERRAL_BONUS)
                     try:
                         bot.send_message(
@@ -92,31 +95,37 @@ def handle_update(update_data):
                         )
                     except Exception as e:
                         print(f"WARNING: Could not send notification to referrer {referrer_id}: {e}")
-                
+                else:
+                    print("No valid referrer found or user is referring themselves.")
+
                 new_user_payload = {
-                    'user_id': user.id, 'first_name': user.first_name, 'username': user.username or '',
-                    'referral_code': generate_referral_code(), 'rix_balance': initial_balance,
-                    'referred_by': referrer_id, 'daily_tasks_completed': 0,
+                    'user_id': user.id,
+                    'first_name': user.first_name,
+                    'username': user.username or '',
+                    'referral_code': generate_referral_code(),
+                    'rix_balance': NEW_USER_BONUS,
+                    'referred_by': referrer_id,
+                    'daily_tasks_completed': 0,
                     'last_task_reset': datetime.now(timezone.utc).strftime('%Y-%m-%d')
                 }
                 
-                print(f"INFO: Inserting new user with payload: {new_user_payload}")
+                print(f"Inserting payload into DB: {new_user_payload}")
                 insert_response = supabase.table('users').insert(new_user_payload).execute()
-                
+
                 if len(insert_response.data) > 0:
-                    print(f"SUCCESS: User {user.id} created successfully.")
+                    print(f"SUCCESS: User {user.id} created.")
                     welcome_message = f"স্বাগতম, {user.first_name}! আপনি বোনাস হিসেবে {NEW_USER_BONUS} RiX পেয়েছেন!"
                 else:
-                    print(f"CRITICAL: Failed to insert user {user.id}. Response: {insert_response}")
-                    welcome_message = "Sorry, there was an error creating your profile. Please try again."
+                    print(f"CRITICAL: Failed to insert user {user.id}. DB Response: {insert_response}")
+                    welcome_message = "Error creating profile."
             else:
-                print(f"INFO: User {user.id} already exists.")
+                print(f"User {user.id} already exists.")
                 welcome_message = f"ফিরে আসার জন্য ধন্যবাদ, {user.first_name}!"
             
             bot.send_message(chat_id=chat_id, text=welcome_message, reply_markup=get_main_menu_keyboard())
-
         except Exception as e:
-            print(f"CRITICAL: Unhandled exception in /start handler for user {user.id}: {e}")
+            print(f"CRITICAL: Unhandled exception in /start: {e}")
+
 
 # --- ধাপ ৬: Vercel এর জন্য ওয়েব সার্ভার এবং API এন্ডপয়েন্টস ---
 @app.route('/app')
@@ -208,6 +217,9 @@ def webhook_handler():
         except Exception as e: print(f"Error: {e}")
         return Response(status=200)
     elif request.method == 'GET':
-        webhook_url = f"https://{VERCEL_URL}/"; bot.set_webhook(url=webhook_url)
-        return "Webhook set"
+        try:
+            webhook_url = f"https://{VERCEL_URL}/"; bot.set_webhook(url=webhook_url)
+            return "Webhook set"
+        except Exception as e:
+            return f"Error setting webhook: {e}", 500
     return "Unsupported"
