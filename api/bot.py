@@ -3,10 +3,13 @@ import os
 import uuid
 from flask import Flask, request, Response, send_from_directory, jsonify
 from flask_cors import CORS
-from telegram import Update, Bot, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
+from telegram import Update, Bot, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.constants import ParseMode # সঠিক ইম্পোর্ট
 from supabase import create_client, Client
 from datetime import datetime, timedelta, timezone
 from dateutil.parser import parse
+
+# ... (বাকি সব কোড অপরিবর্তিত থাকবে) ...
 
 # --- ধাপ ২: এনভায়রনমেন্ট ভেরিয়েবল এবং ক্লায়েন্ট ---
 TOKEN = os.environ.get("TELEGRAM_TOKEN")
