@@ -3,8 +3,7 @@ import os
 import uuid
 from flask import Flask, request, Response, send_from_directory, jsonify
 from flask_cors import CORS
-from telegram import Update, Bot, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.constants import ParseMode # <<<--- সঠিক ইম্পোর্ট
+from telegram import Update, Bot, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from supabase import create_client, Client
 from datetime import datetime, timedelta, timezone
 from dateutil.parser import parse
@@ -54,6 +53,7 @@ def handle_update(update_data):
     user = update.message.from_user; chat_id = update.message.chat_id
     try:
         existing_user = supabase.table('users').select('user_id').eq('user_id', user.id).limit(1).execute()
+        
         if not existing_user.data:
             supabase.table('users').insert({
                 'user_id': user.id, 'first_name': user.first_name, 'username': user.username or '',
@@ -63,13 +63,14 @@ def handle_update(update_data):
             welcome_message = f"🎉 **স্বাগতম, {user.first_name}!**\n\nRiX Earn-এ যোগ দেওয়ার জন্য আপনাকে {NEW_USER_BONUS} RiX বোনাস দেওয়া হয়েছে!"
         else:
             welcome_message = f"👋 **ফিরে আসার জন্য ধন্যবাদ, {user.first_name}!**"
+            
         bot.send_message(chat_id=chat_id, text=welcome_message, reply_markup=get_main_menu_keyboard(), parse_mode=ParseMode.MARKDOWN)
     except Exception as e:
         print(f"CRITICAL Error in /start handler: {e}")
         bot.send_message(chat_id=chat_id, text="😕 একটি সমস্যা হয়েছে।")
 
-
 # --- ধাপ ৬: Vercel এর জন্য ওয়েব সার্ভার এবং API এন্ডপয়েন্টস ---
+
 @app.route('/app')
 def mini_app_handler():
     try:
@@ -105,21 +106,27 @@ def submit_referral_api():
         data = request.json; user_id = data.get('user_id'); referral_code = data.get('referral_code', '').strip()
         if not user_id or not referral_code: return jsonify({"success": False, "message": "User ID and code are required."}), 400
         user_id = int(user_id)
+
         user_profile = supabase.table('users').select('referred_by').eq('user_id', user_id).single().execute().data
         if not user_profile: return jsonify({"success": False, "message": "Your profile was not found."}), 404
         if user_profile.get('referred_by') is not None: return jsonify({"success": False, "message": "Already used a referral code."}), 400
+
         referrer_response = supabase.table('users').select('user_id, first_name').eq('referral_code', referral_code).limit(1).execute()
         if not referrer_response.data: return jsonify({"success": False, "message": "Invalid referral code."}), 400
+        
         referrer = referrer_response.data[0]; referrer_id = referrer['user_id']
         if referrer_id == user_id: return jsonify({"success": False, "message": "You cannot use your own code."}), 400
+        
         update_rix_balance(user_id, REFERRAL_BONUS)
         update_rix_balance(referrer_id, REFERRAL_BONUS)
         supabase.table('users').update({'referred_by': referrer_id}).eq('user_id', user_id).execute()
+
         try:
             user_info = supabase.table('users').select('first_name').eq('user_id', user_id).single().execute().data
             user_first_name = user_info.get('first_name', 'A new user')
             bot.send_message(chat_id=referrer_id, text=f"🎉 Congratulations! {user_first_name} used your code. You both received {REFERRAL_BONUS} RiX bonus!")
         except Exception as e: print(f"Could not send notification to {referrer_id}: {e}")
+
         new_user_data = supabase.table('users').select('*').eq('user_id', user_id).single().execute().data
         return jsonify({"success": True, "message": f"Successfully used referral from {referrer['first_name']}!", "user_data": new_user_data})
     except Exception as e: return jsonify({"error": f"Internal server error: {str(e)}"}), 500
