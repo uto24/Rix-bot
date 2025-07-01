@@ -3,7 +3,8 @@ import os
 import uuid
 from flask import Flask, request, Response, send_from_directory, jsonify
 from flask_cors import CORS
-from telegram import Update, Bot, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
+from telegram import Update, Bot, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.constants import ParseMode # <<<--- সঠিক ইম্পোর্ট
 from supabase import create_client, Client
 from datetime import datetime, timedelta, timezone
 from dateutil.parser import parse
@@ -65,23 +66,16 @@ def handle_update(update_data):
         command_parts = text.split(); referrer_id = None
         if len(command_parts) > 1:
             referral_code = command_parts[1]
-            print(f"Attempting to find referrer with code: {referral_code}")
             try:
                 referrer_response = supabase.table('users').select('user_id').eq('referral_code', referral_code).limit(1).execute()
-                if referrer_response.data:
-                    referrer_id = int(referrer_response.data[0]['user_id'])
-                    print(f"Referrer found: {referrer_id}")
+                if referrer_response.data: referrer_id = int(referrer_response.data[0]['user_id'])
             except Exception as e: print(f"ERROR during referrer lookup: {e}")
         
-        print("Checking if user exists...")
         existing_user_response = supabase.table('users').select('user_id').eq('user_id', user.id).limit(1).execute()
         
         if not existing_user_response.data:
-            print("User is new. Proceeding to create profile.")
             initial_balance = NEW_USER_BONUS
-            
             if referrer_id and referrer_id != user.id:
-                print(f"Awarding bonus to referrer {referrer_id}")
                 update_rix_balance(referrer_id, REFERRAL_BONUS)
                 try:
                     bot.send_message(chat_id=referrer_id, text=f"🎉 Congratulations! {user.first_name} has joined using your link. You've received a {REFERRAL_BONUS} RiX bonus!")
@@ -93,15 +87,12 @@ def handle_update(update_data):
                 'referred_by': referrer_id, 'daily_tasks_completed': 0,
                 'last_task_reset': datetime.now(timezone.utc).strftime('%Y-%m-%d')
             }
-            print(f"Inserting new user: {new_user_payload}")
             supabase.table('users').insert(new_user_payload).execute()
             
             welcome_message = f"🎉 **স্বাগতম, {user.first_name}!** 🎉\n\nআপনি সফলভাবে RiX Earn জগতে প্রবেশ করেছেন এবং **{NEW_USER_BONUS} RiX Coin** বোনাস পেয়েছেন!"
         else:
-            print("User already exists.")
             welcome_message = f"👋 **ফিরে আসার জন্য ধন্যবাদ, {user.first_name}!**\n\nনিচের বাটনে ক্লিক করে আয় করা চালিয়ে যান।"
         
-        print("Sending welcome message...")
         bot.send_message(
             chat_id=chat_id, text=welcome_message, 
             reply_markup=get_main_menu_keyboard(), parse_mode=ParseMode.MARKDOWN
@@ -112,28 +103,23 @@ def handle_update(update_data):
         print(f"!!!!!!!! CRITICAL ERROR in /start handler for user {user.id} !!!!!!!!!!")
         print(f"ERROR DETAILS: {e}")
         try:
-            bot.send_message(
-                chat_id=chat_id,
-                text="😕 দুঃখিত, একটি প্রযুক্তিগত সমস্যা হয়েছে। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।"
-            )
+            bot.send_message(chat_id=chat_id, text="😕 দুঃখিত, একটি প্রযুক্তিগত সমস্যা হয়েছে। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।")
         except Exception as notify_error:
             print(f"Failed to even send error notification: {notify_error}")
 
 # --- ধাপ ৬: Vercel এর জন্য ওয়েব সার্ভার এবং API এন্ডপয়েন্টস ---
+# ... (এই অংশটুকু সম্পূর্ণ অপরিবর্তিত থাকবে) ...
 @app.route('/app')
 def mini_app_handler():
     try:
-        root_path = os.path.join(os.path.dirname(__file__), '..')
-        return send_from_directory(os.path.join(root_path, 'frontend'), 'index.html')
+        root_path = os.path.join(os.path.dirname(__file__), '..'); return send_from_directory(os.path.join(root_path, 'frontend'), 'index.html')
     except Exception as e: return "Mini App not found", 404
-
 @app.route('/api/user_data', methods=['GET'])
 def get_user_data():
     try:
         user_id_str = request.args.get('user_id');
         if not user_id_str: return jsonify({"error": "User ID is required"}), 400
-        user_id = int(user_id_str)
-        response = supabase.table('users').select('*').eq('user_id', user_id).execute()
+        user_id = int(user_id_str); response = supabase.table('users').select('*').eq('user_id', user_id).execute()
         if response.data:
             user_data = response.data[0]; today_str = datetime.now(timezone.utc).strftime('%Y-%m-%d')
             if str(user_data.get('last_task_reset')) != today_str:
@@ -148,7 +134,6 @@ def get_user_data():
             if insert_response.data: return jsonify(insert_response.data[0])
             else: return jsonify({"error": "Could not create profile"}), 500
     except Exception as e: return jsonify({"error": f"Internal server error: {e}"}), 500
-
 @app.route('/api/get_referrals', methods=['GET'])
 def get_referrals_api():
     try:
@@ -158,7 +143,6 @@ def get_referrals_api():
         response = supabase.table('users').select('first_name, created_at').eq('referred_by', user_id).order('created_at', desc=True).limit(20).execute()
         return jsonify(response.data)
     except Exception as e: return jsonify({"error": f"Internal server error: {str(e)}"}), 500
-
 @app.route('/api/complete_task', methods=['POST'])
 def complete_task_api():
     try:
@@ -174,7 +158,6 @@ def complete_task_api():
         new_user_data = supabase.table('users').select('*').eq('user_id', user_id).single().execute().data
         return jsonify({"success": True, "message": f"{TASK_REWARD} RiX received!", "user_data": new_user_data})
     except Exception as e: return jsonify({"error": f"Internal server error: {e}"}), 500
-
 @app.route('/api/claim_mining', methods=['POST'])
 def claim_mining_api():
     try:
@@ -200,7 +183,6 @@ def claim_mining_api():
             next_claim_time = parse(last_claim_str) + timedelta(hours=MINING_COOLDOWN_HOURS)
             return jsonify({"success": False, "message": "It's not time to claim yet.", "next_claim_time": next_claim_time.isoformat()})
     except Exception as e: return jsonify({"error": f"Internal server error: {str(e)}"}), 500
-
 @app.route('/', methods=['GET', 'POST'])
 def webhook_handler():
     if request.method == 'POST':
