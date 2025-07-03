@@ -12,11 +12,18 @@
     <script src='//libtl.com/sdk.js' data-zone='9504423' data-sdk='show_9504423'></script>
 
     <style>
-        :root { --tg-theme-bg-color: #171a21; --tg-theme-text-color: #e0e0e0; --tg-theme-button-color: #5288c1; --tg-theme-button-text-color: #ffffff; --tg-theme-hint-color: #9099a2; --tg-theme-secondary-bg-color: #2a2c3c; --primary-accent-color: #4a90e2; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        :root { --tg-theme-bg-color: #171a21; --tg-theme-text-color: #fff; --tg-theme-button-color: #3bff00; --tg-theme-button-text-color: #ffffff; --tg-theme-hint-color: #9099a2; --tg-theme-secondary-bg-color: #2a2c3c; --primary-accent-color: #3bff00; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: url(https://i.postimg.cc/FzSSKJ7b/74f07007-acd0-4431-a647-ae287dc00382.jpg);
+      background-size: cover;  color: var(--tg-theme-text-color); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         .main-content { flex-grow: 1; padding: 20px; overflow-y: auto; display: none; text-align: center; }
         .main-content.active { display: flex; flex-direction: column; align-items: center; }
-        .info-card { background-color: var(--tg-theme-secondary-bg-color); border-radius: 12px; padding: 20px; margin-bottom: 15px; width: 90%; max-width: 400px; }
+        .info-card { /* From https://css.glass */
+background: #004d0739;
+border-radius: 16px;
+box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+backdrop-filter: blur(20px);
+-webkit-backdrop-filter: blur(20px);
+border: 1px solid rgba(0, 255, 66, 0.12);padding: 20px; margin-bottom: 15px; width: 90%; max-width: 400px; }
         .info-card h3 { margin-top: 0; color: var(--primary-accent-color); display: flex; align-items: center; justify-content: center; gap: 8px; }
         .info-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #3a3c4c; }
         .info-item:last-child { border-bottom: none; }
@@ -27,12 +34,13 @@
         #referral-list-container { margin-top: 20px; text-align: left; }
         #referral-list { list-style-type: none; padding: 0; max-height: 150px; overflow-y: auto; }
         #referral-list li { background-color: #3a3c4c; padding: 8px 12px; border-radius: 6px; margin-bottom: 5px; font-size: 0.9em; }
-        .main-button { width: 100%; background-color: var(--tg-theme-button-color); color: white; border: none; padding: 15px 0; font-size: 1.1em; font-weight: bold; border-radius: 10px; cursor: pointer; margin-top: 10px; }
+        .main-button { width: 100%; background-color: #3bff00; color: white; border: none; padding: 15px 0; font-size: 1.1em; font-weight: bold; border-radius: 10px; cursor: pointer; margin-top: 10px; }
         .main-button:disabled { background-color: #555; cursor: not-allowed; }
         .bottom-nav { width: 100%; display: flex; justify-content: space-around; padding: 10px 0; background-color: var(--tg-theme-secondary-bg-color); border-top: 1px solid #3a3c4c; }
         .nav-button { background: none; border: none; color: var(--tg-theme-hint-color); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.8em; }
         .nav-button.active { color: var(--primary-accent-color); }
         .nav-button i { font-size: 1.5em; }
+        
     </style>
 </head>
 <body>
@@ -43,9 +51,23 @@
         
         <div class="info-card"><h3><i class="fa-solid fa-circle-info"></i> কিছু কথা</h3><p>অনেক কষ্টে বটটি বানানো, তাই যদি আপনাকে এড দেখিশে লাভ না হয়,  তাহলে কীভাবে টাকা দিবো ।  আমি অনলাইনের কাজ বুঝি, আমি নিজেও অনেক জায়গায় প্রতারিত হয়েছি ।  তাই কষ্ট টা বুঝি, আমার এড দেখিয়ে টাস্ক পূরণ করে লাভ হলে, টাকা উইথড্র দিলে সবাই পাবে ।  কিন্তু এড ভালোভাবে না দেখে, টাইমার শেষ হওয়ার আগেই বেক চলে আশা, 100 টার মধ্যে ৬/৭ টি এডে ক্লিক না করা, এরকম হলে তো এড কোম্পানি টাকা দেয় না ।  সো, ওরা টাকা না দিলে বট কীভাবে দিবে ।  ভালো করবেন, ভালো পাবেন ।  ভালোভাবে যারা কাজ করছে, তারা টাকা পাচ্ছে, আর যারা ভালোভাবে কাজ করছে না, তারা এড দেখলেও যেহেতু টাকা বট পাচ্ছে না,  তাই তারাও টাকা পাচ্ছে না ।  এখানে একদম ক্লিয়ার সিস্টেম আছে, ফেক ইউজারদের ধরার।  প্লিজ সবাই ভালোভাবে কাজ করুন ।  </p>
        </div>
+      
        
-       <div class="info-card"><h3><i class="fa-solid fa-circle-info"></i> Contact</h3><p>যেকোনো সমস্যা / অভিযোগ জানাতে পারেন, এই আইডিতে : @forum_support20 </p>
+       <div class="info-card" style="text-align: left;"><h3><i class="fa-solid fa-circle-info"></i> Contact</h3><p>এক নজরে কোথায় কী আছে? </p>
+       
+       <ul>
+           <li><b>Mining : </b>এখানে আপনি ৮ ঘন্টা পর পর মাইনিং করে বোনাস Rix Coin জমিয়ে Withdraw করতে পারবেন। </li>
+           <li><strong>Task :</strong> এখানে দৈনিক ১০০টা করে এড দেখে, আপনার RiX Balnace বাড়াতে পাড়বেন।  </li>
+           
+           <li><strong>Account : </strong>এখানে আপনার ব্যালেন্স, একাউন্ট ডিটেইলস দেখতে পারবেন । এবং রেপরারাল সিস্টেমও পাবেন । </li>
+           
+           <li><strong>Withdraw : </strong> আপনার উপার্জিত Rix Coin কে টাকায় কনভার্ট করে, বিকাশ/নগদ/রকেটে তুলতে পারবেন । </li>
+           
+           
+           
+       </ul>
        </div>
+       
     </div>
     <!-- Task Section -->
     <div id="task-section" class="main-content">
@@ -271,7 +293,13 @@
             </div>
         </div>
 
+ 
+       
     </section>
+    
+     <div class="info-card"><h3><i class="fa-solid fa-circle-info"></i> Contact</h3><p>যেকোনো সমস্যা / অভিযোগ জানাতে পারেন, এই আইডিতে : @forum_support20 </p>
+       </div>
+       
     
     </div>
     </div>
