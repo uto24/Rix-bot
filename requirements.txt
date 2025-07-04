@@ -1,5 +1,6 @@
 python-telegram-bot
 flask
+flask-cors
 supabase
 python-dateutil
-flask-cors
+gunicorn
