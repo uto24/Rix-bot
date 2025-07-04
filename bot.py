@@ -188,26 +188,37 @@ def claim_mining_api():
             next_claim_time = parse(last_claim_str) + timedelta(hours=MINING_COOLDOWN_HOURS)
             return jsonify({"success": False, "message": "It's not time to claim yet.", "next_claim_time": next_claim_time.isoformat()})
     except Exception as e: return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+# ... (অন্যান্য সব API এন্ডপয়েন্ট অপরিবর্তিত থাকবে) ...
 
 
-# --- Webhook সেটআপ এবং অ্যাপ রান ---
+# --- Webhook সেটআপ এবং বট পরিচালনা ---
+
 @app.route('/', methods=['POST'])
 def webhook_handler():
+    """টেলিগ্রাম থেকে আসা সব POST রিকোয়েস্ট এখানে আসে।"""
     handle_update(request.json)
     return Response(status=200)
 
-def set_webhook():
+@app.route('/set_webhook', methods=['GET'])
+def set_webhook_route():
+    """
+    এই URL টি ব্রাউজারে ভিজিট করলেই Webhook সেট হয়ে যাবে।
+    """
     if RENDER_URL:
         webhook_url = f"{RENDER_URL}/"
-        is_set = bot.set_webhook(url=webhook_url, allowed_updates=['message', 'callback_query'])
-        if is_set:
-            print(f"Webhook set successfully to {webhook_url}")
-        else:
-            print("Webhook setup failed.")
+        try:
+            is_set = bot.set_webhook(url=webhook_url, allowed_updates=['message', 'callback_query'])
+            if is_set:
+                return "Webhook সফলভাবে সেট করা হয়েছে!", 200
+            else:
+                return "Webhook সেট করতে ব্যর্থ। টেলিগ্রাম থেকে কোনো উত্তর আসেনি।", 500
+        except Exception as e:
+            print(f"Webhook সেট করার সময় এরর: {e}")
+            return f"An error occurred: {e}", 500
+    else:
+        return "RENDER_EXTERNAL_URL পাওয়া যায়নি।", 500
 
-# এই ব্লকটি Gunicorn ব্যবহার করে অ্যাপ চালানোর জন্য
+# Gunicorn এই অংশটি ব্যবহার করে অ্যাপটি চালাবে
 if __name__ == "__main__":
-    # Webhook সেট করার জন্য এই লাইনটি রাখা যেতে পারে
-    set_webhook()
-    # Gunicorn এই অংশটি ব্যবহার করবে না, এটি সরাসরি app অবজেক্টটি ব্যবহার করবে
-    # app.run(host='0.0.0.0', port=PORT)
+    # লোকাল টেস্টিং এর জন্য
+    app.run(host='0.0.0.0', port=PORT)
