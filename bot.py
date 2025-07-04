@@ -3,7 +3,8 @@ import os
 import uuid
 from flask import Flask, request, Response, send_from_directory, jsonify
 from flask_cors import CORS
-from telegram import Update, Bot, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
+from telegram import Update, Bot, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.constants import ParseMode
 from supabase import create_client, Client
 from datetime import datetime, timedelta, timezone
 from dateutil.parser import parse
@@ -12,13 +13,11 @@ from dateutil.parser import parse
 TOKEN = os.environ.get("TELEGRAM_TOKEN")
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
-# Render.com স্বয়ংক্রিয়ভাবে RENDER_EXTERNAL_URL ভেরিয়েবল সেট করে
 RENDER_URL = os.environ.get("RENDER_EXTERNAL_URL") 
-PORT = int(os.environ.get('PORT', 5000)) # Render-এর জন্য পোর্ট
+PORT = int(os.environ.get('PORT', 5000))
 
 bot = Bot(token=TOKEN)
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-# static_folder='frontend' যোগ করা হয়েছে যাতে CSS/JS ফাইলগুলো সঠিকভাবে সার্ভ হয়
 app = Flask(__name__, static_folder='frontend')
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
@@ -31,7 +30,7 @@ MINING_REWARD = 500
 MINING_COOLDOWN_HOURS = 8
 
 # --- ধাপ ৪: সহায়ক ফাংশন ---
-def generate_referral_code(): return str(uuid.uuid4())[:8]
+def generate_referral_code(): return str(uuid.uuid4())[:10]
 
 def update_rix_balance(user_id, amount_to_add):
     try:
@@ -42,18 +41,18 @@ def update_rix_balance(user_id, amount_to_add):
             supabase.table('users').update({'rix_balance': new_balance}).eq('user_id', user_id).execute()
     except Exception as e: print(f"Balance update error for {user_id}: {e}")
 
-def get_main_menu_keyboard(is_new_user=False):
+def get_main_menu_keyboard(is_new_user_without_ref=False):
     mini_app_url = f"{RENDER_URL}/app" if RENDER_URL else ""
     keyboard = [[InlineKeyboardButton("💎 ওপেন RiX Earn অ্যাপ", web_app={'url': mini_app_url})]]
-    if is_new_user:
+    if is_new_user_without_ref:
         keyboard.append([InlineKeyboardButton("🎁 ইনপুট রেফারেল কোড", callback_data="enter_referral_code")])
     return InlineKeyboardMarkup(keyboard)
 
-# --- ধাপ ৫: মূল সিঙ্ক্রোনাস লজিক (বটের জন্য) ---
+# --- ধাপ ৫: মূল বট লজিক ---
 def handle_update(update_data):
     update = Update.de_json(update_data, bot)
     
-    # Callback Query (বাটন ক্লিক) হ্যান্ডলার
+    # Callback Query (বাটন ক্লিক)
     if update.callback_query:
         query = update.callback_query; chat_id = query.message.chat_id
         if query.data == "enter_referral_code":
@@ -84,8 +83,8 @@ def handle_update(update_data):
                 
                 supabase.table('users').insert({'user_id': user.id, 'first_name': user.first_name, 'username': user.username or '', 'referral_code': generate_referral_code(), 'rix_balance': initial_balance, 'referred_by': referrer_id}).execute()
                 welcome_message = f"🎉 **স্বাগতম, {user.first_name}!**\n\nRiX Earn-এ যোগ দেওয়ার জন্য আপনাকে **{initial_balance} RiX** বোনাস দেওয়া হয়েছে!"
-                is_new = not bool(referrer_id)
-                bot.send_message(chat_id=chat_id, text=welcome_message, reply_markup=get_main_menu_keyboard(is_new_user=is_new), parse_mode=ParseMode.MARKDOWN)
+                is_new_without_ref = not bool(referrer_id)
+                bot.send_message(chat_id=chat_id, text=welcome_message, reply_markup=get_main_menu_keyboard(is_new_user_without_ref=is_new_without_ref), parse_mode=ParseMode.MARKDOWN)
             else:
                 welcome_message = f"👋 **ফিরে আসার জন্য ধন্যবাদ, {user.first_name}!**"
                 bot.send_message(chat_id=chat_id, text=welcome_message, reply_markup=get_main_menu_keyboard(), parse_mode=ParseMode.MARKDOWN)
@@ -118,9 +117,78 @@ def mini_app_handler():
 
 @app.route('/api/user_data', methods=['GET'])
 def get_user_data():
-    # ... (অপরিবর্তিত) ...
-    pass
-# ... (আপনার অন্যান্য সব API এন্ডপয়েন্ট অপরিবর্তিত থাকবে) ...
+    try:
+        user_id_str = request.args.get('user_id');
+        if not user_id_str: return jsonify({"error": "User ID is required"}), 400
+        user_id = int(user_id_str)
+        response = supabase.table('users').select('*').eq('user_id', user_id).execute()
+        if response.data:
+            user_data = response.data[0]; today_str = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+            if str(user_data.get('last_task_reset')) != today_str:
+                supabase.table('users').update({'daily_tasks_completed': 0, 'last_task_reset': today_str}).eq('user_id', user_id).execute()
+                updated_response = supabase.table('users').select('*').eq('user_id', user_id).single().execute()
+                return jsonify(updated_response.data)
+            return jsonify(user_data)
+        else:
+            first_name = request.args.get('first_name', 'Player'); username = request.args.get('username', '')
+            new_user_data = { 'user_id': user_id, 'first_name': first_name, 'username': username, 'referral_code': generate_referral_code(), 'rix_balance': NEW_USER_BONUS, 'daily_tasks_completed': 0, 'last_task_reset': datetime.now(timezone.utc).strftime('%Y-%m-%d') }
+            insert_response = supabase.table('users').insert(new_user_data).execute()
+            if insert_response.data: return jsonify(insert_response.data[0])
+            else: return jsonify({"error": "Could not create profile"}), 500
+    except Exception as e: return jsonify({"error": f"Internal server error: {e}"}), 500
+
+@app.route('/api/get_referrals', methods=['GET'])
+def get_referrals_api():
+    try:
+        user_id_str = request.args.get('user_id')
+        if not user_id_str: return jsonify({"error": "User ID is required"}), 400
+        user_id = int(user_id_str)
+        response = supabase.table('users').select('first_name, created_at').eq('referred_by', user_id).order('created_at', desc=True).limit(20).execute()
+        return jsonify(response.data)
+    except Exception as e: return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+
+@app.route('/api/complete_task', methods=['POST'])
+def complete_task_api():
+    try:
+        data = request.json; user_id = data.get('user_id');
+        if not user_id: return jsonify({"error": "User ID is required"}), 400
+        user_id = int(user_id)
+        user_data = supabase.table('users').select('daily_tasks_completed').eq('user_id', user_id).single().execute().data
+        if not user_data: return jsonify({"error": "User not found"}), 404
+        completed_tasks = user_data.get('daily_tasks_completed', 0)
+        if completed_tasks >= DAILY_TASK_LIMIT: return jsonify({"success": False, "message": "All tasks completed for today."})
+        update_rix_balance(user_id, TASK_REWARD); new_completed_count = completed_tasks + 1
+        supabase.table('users').update({'daily_tasks_completed': new_completed_count}).eq('user_id', user_id).execute()
+        new_user_data = supabase.table('users').select('*').eq('user_id', user_id).single().execute().data
+        return jsonify({"success": True, "message": f"{TASK_REWARD} RiX received!", "user_data": new_user_data})
+    except Exception as e: return jsonify({"error": f"Internal server error: {e}"}), 500
+
+@app.route('/api/claim_mining', methods=['POST'])
+def claim_mining_api():
+    try:
+        data = request.json; user_id = data.get('user_id');
+        if not user_id: return jsonify({"error": "User ID is required"}), 400
+        user_id = int(user_id)
+        user_response = supabase.table('users').select('last_mining_claim').eq('user_id', user_id).execute()
+        if not user_response.data: return jsonify({"error": "User not found"}), 404
+        user_data = user_response.data[0]; last_claim_str = user_data.get('last_mining_claim')
+        can_claim = False
+        if not last_claim_str: can_claim = True
+        else:
+            try:
+                last_claim_time = parse(last_claim_str); next_claim_time = last_claim_time + timedelta(hours=MINING_COOLDOWN_HOURS)
+                if datetime.now(timezone.utc) >= next_claim_time: can_claim = True
+            except (TypeError, ValueError): can_claim = True
+        if can_claim:
+            update_rix_balance(user_id, MINING_REWARD); now_utc = datetime.now(timezone.utc).isoformat()
+            supabase.table('users').update({'last_mining_claim': now_utc}).eq('user_id', user_id).execute()
+            new_user_data = supabase.table('users').select('*').eq('user_id', user_id).single().execute().data
+            return jsonify({"success": True, "message": f"{MINING_REWARD} RiX successfully claimed!", "user_data": new_user_data})
+        else:
+            next_claim_time = parse(last_claim_str) + timedelta(hours=MINING_COOLDOWN_HOURS)
+            return jsonify({"success": False, "message": "It's not time to claim yet.", "next_claim_time": next_claim_time.isoformat()})
+    except Exception as e: return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+
 
 # --- Webhook সেটআপ এবং অ্যাপ রান ---
 @app.route('/', methods=['POST'])
@@ -129,7 +197,6 @@ def webhook_handler():
     return Response(status=200)
 
 def set_webhook():
-    # শুধুমাত্র একবার চালু করার জন্য
     if RENDER_URL:
         webhook_url = f"{RENDER_URL}/"
         is_set = bot.set_webhook(url=webhook_url, allowed_updates=['message', 'callback_query'])
@@ -138,8 +205,9 @@ def set_webhook():
         else:
             print("Webhook setup failed.")
 
+# এই ব্লকটি Gunicorn ব্যবহার করে অ্যাপ চালানোর জন্য
 if __name__ == "__main__":
-    # Render.com এই ব্লকটি ব্যবহার করে না, এটি Gunicorn থেকে অ্যাপ চালায়।
-    # কিন্তু প্রথমবার Webhook সেট করার জন্য এটি কার্যকর হতে পারে।
+    # Webhook সেট করার জন্য এই লাইনটি রাখা যেতে পারে
     set_webhook()
-    app.run(host='0.0.0.0', port=PORT)
+    # Gunicorn এই অংশটি ব্যবহার করবে না, এটি সরাসরি app অবজেক্টটি ব্যবহার করবে
+    # app.run(host='0.0.0.0', port=PORT)
