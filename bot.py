@@ -24,9 +24,9 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 # --- ধাপ ৩: গেমের নিয়ম ---
 NEW_USER_BONUS = 2000
 REFERRAL_BONUS = 1000
-TASK_REWARD = 200
-DAILY_TASK_LIMIT = 100
-MINING_REWARD = 500
+TASK_REWARD = 100
+DAILY_TASK_LIMIT = 300
+MINING_REWARD = 600
 MINING_COOLDOWN_HOURS = 8
 
 # --- ধাপ ৪: সহায়ক ফাংশন ---
