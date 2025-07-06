@@ -38,6 +38,28 @@
         .withdraw-styles .methods h3 { color: var(--tg-theme-hint-color); text-transform: uppercase; font-size: 0.9em; letter-spacing: 1px; margin-bottom: 1rem; }
         .withdraw-styles .method-icons { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 12px; }
         .withdraw-styles .payment-method { background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); padding: 8px 16px; border-radius: 20px; font-size: 0.9em; }
+
+        /* Scroll Down Icon Styles (নতুন যোগ করা হয়েছে) */
+        #scroll-down-icon {
+            position: fixed;
+            bottom: 70px; /* নেভিগেশন বারের উপরে রাখার জন্য */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            background-color: rgba(42, 44, 60, 0.7); /* একটু স্বচ্ছ ব্যাকগ্রাউন্ড */
+            color: var(--primary-accent-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            z-index: 999;
+            border: 1px solid var(--primary-accent-color);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            transition: opacity 0.3s ease; /* স্মুথ ভাবে দেখানোর জন্য */
+        }
     </style>
 </head>
 <body>
@@ -78,6 +100,11 @@
             </section>
         </div>
         <div class="info-card"><h3><i class="fa-solid fa-circle-info"></i> Contact</h3><p>যেকোনো সমস্যা / অভিযোগ জানাতে পারেন, এই আইডিতে : @forum_support20</p></div>
+    </div>
+
+    <!-- Scroll Down Icon (এই অংশটি নতুন যোগ করা হয়েছে) -->
+    <div id="scroll-down-icon" style="display: none;">
+        <i class="fa-solid fa-chevron-down fa-bounce"></i>
     </div>
     <!-- Bottom Navigation Bar -->
     <nav class="bottom-nav">
@@ -271,6 +298,77 @@
             
             loadUserData();
         });
+
+     
+    // এই সম্পূর্ণ স্ক্রিপ্টটি নতুন করে যোগ করা হয়েছে
+    document.addEventListener('DOMContentLoaded', () => {
+        const navButtons = document.querySelectorAll('.nav-button');
+        const contentSections = document.querySelectorAll('.main-content');
+        const scrollIcon = document.getElementById('scroll-down-icon');
+
+        // স্ক্রল আইকন চেক এবং আপডেট করার ফাংশন
+        function updateScrollIcon() {
+            const activeSection = document.querySelector('.main-content.active');
+            if (!activeSection) {
+                scrollIcon.style.display = 'none';
+                return;
+            }
+
+            // কনটেন্ট কি স্ক্রল করা সম্ভব?
+            const isScrollable = activeSection.scrollHeight > activeSection.clientHeight;
+            
+            // ব্যবহারকারী কি একদম নিচে স্ক্রল করেছে? (ছোট একটি বাফার সহ)
+            const isAtBottom = activeSection.scrollHeight - activeSection.scrollTop <= activeSection.clientHeight + 2;
+
+            if (isScrollable && !isAtBottom) {
+                scrollIcon.style.display = 'flex'; // আইকন দেখাও
+            } else {
+                scrollIcon.style.display = 'none'; // আইকন হাইড করো
+            }
+        }
+
+        // নেভিগেশন বাটন ক্লিকের জন্য ইভেন্ট লিসেনার
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const sectionId = button.getAttribute('data-section');
+
+                // সব বাটন থেকে 'active' ক্লাস সরিয়ে দাও
+                navButtons.forEach(btn => btn.classList.remove('active'));
+                // ক্লিক করা বাটনে 'active' ক্লাস যোগ করো
+                button.classList.add('active');
+
+                // সব কনটেন্ট সেকশন হাইড করো
+                contentSections.forEach(section => section.classList.remove('active'));
+                // নির্দিষ্ট সেকশন দেখাও
+                document.getElementById(sectionId).classList.add('active');
+
+                // সেকশন পরিবর্তনের পর স্ক্রল আইকন আপডেট করো
+                updateScrollIcon();
+            });
+        });
+
+        // প্রতিটি কনটেন্ট সেকশনে স্ক্রল ইভেন্ট যোগ করা
+        contentSections.forEach(section => {
+            section.addEventListener('scroll', updateScrollIcon);
+        });
+
+        // স্ক্রল আইকনে ক্লিক করলে নিচে স্ক্রল হবে
+        scrollIcon.addEventListener('click', () => {
+            const activeSection = document.querySelector('.main-content.active');
+            if (activeSection) {
+                activeSection.scrollBy({
+                    top: 200, // ২০০ পিক্সেল নিচে স্ক্রল হবে
+                    behavior: 'smooth' // স্মুথলি স্ক্রল হবে
+                });
+            }
+        });
+
+        // ব্রাউজার উইন্ডো রিসাইজ হলে আইকন আপডেট করো
+        window.addEventListener('resize', updateScrollIcon);
+
+        // পেজ লোড হওয়ার সাথে সাথে প্রথমবার আইকন চেক করো
+        updateScrollIcon();
+    });
     </script>
 </body>
 </html>
