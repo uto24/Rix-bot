@@ -8,247 +8,77 @@
     <!-- Font Awesome আইকনের জন্য CDN লিঙ্ক -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     
-    <!-- Monetag SDK লোড করার জন্য (async যোগ করা হলো পারফর্মেন্সের জন্য) -->
+    <!-- Monetag SDK লোড করার জন্য -->
     <script async src='https://libtl.com/sdk.js' data-zone='9504423' data-sdk='show_9504423'></script>
 
     <style>
-        /* আপনার আগের সব CSS এখানে থাকবে... */
-        :root { 
-            --tg-theme-bg-color: #171a21; 
-            --tg-theme-text-color: #fff; 
-            --tg-theme-button-color: #3bff00; 
-            --tg-theme-button-text-color: #ffffff; 
-            --tg-theme-hint-color: #9099a2; 
-            --tg-theme-secondary-bg-color: #2a2c3c; 
-            --primary-accent-color: #3bff00; 
-        }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-            background: url(https://i.postimg.cc/FzSSKJ7b/74f07007-acd0-4431-a647-ae287dc00382.jpg) no-repeat center center fixed;
-            background-size: cover;  
-            color: var(--tg-theme-text-color); 
-            margin: 0; 
-            padding: 0; 
-            display: flex; 
-            flex-direction: column; 
-            height: 100vh; 
-            overflow: hidden; 
-        }
-        .main-content { 
-            flex-grow: 1; 
-            padding: 20px; 
-            overflow-y: auto; 
-            display: none; 
-            text-align: center; 
-        }
-        .main-content.active { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-        }
-        .info-card {
-            background: rgba(0, 77, 7, 0.22);
-            border-radius: 16px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(0, 255, 66, 0.12);
-            padding: 20px; 
-            margin-bottom: 15px; 
-            width: 90%; 
-            max-width: 400px;
-            box-sizing: border-box;
-        }
-        .info-card h3 { 
-            margin-top: 0; 
-            color: var(--primary-accent-color); 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 8px; 
-        }
-        .info-item { 
-            display: flex; 
-            justify-content: space-between; 
-            padding: 10px 0; 
-            border-bottom: 1px solid #3a3c4c; 
-        }
+        :root { --tg-theme-bg-color: #171a21; --tg-theme-text-color: #fff; --tg-theme-button-color: #3bff00; --tg-theme-button-text-color: #000; --tg-theme-hint-color: #9099a2; --tg-theme-secondary-bg-color: #2a2c3c; --primary-accent-color: #3bff00; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: url(https://i.postimg.cc/FzSSKJ7b/74f07007-acd0-4431-a647-ae287dc00382.jpg) no-repeat center center fixed; background-size: cover; color: var(--tg-theme-text-color); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        .main-content { flex-grow: 1; padding: 20px; overflow-y: auto; display: none; text-align: center; }
+        .main-content.active { display: flex; flex-direction: column; align-items: center; }
+        .info-card { background: rgba(0, 77, 7, 0.22); border-radius: 16px; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(0, 255, 66, 0.12); padding: 20px; margin-bottom: 15px; width: 90%; max-width: 400px; box-sizing: border-box; }
+        .info-card h3 { margin-top: 0; color: var(--primary-accent-color); display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .info-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #3a3c4c; }
         .info-item:last-child { border-bottom: none; }
-        
         .input-group { display: flex; align-items: center; margin-top: 10px; }
         .input-group input { flex-grow: 1; background-color: #3a3c4c; border: 1px solid #555; color: white; padding: 10px; border-radius: 8px 0 0 8px; font-size: 0.9em; }
-        .input-group button { background-color: var(--primary-accent-color); border: none; color: white; padding: 11px 15px; border-radius: 0 8px 8px 0; cursor: pointer; }
-        .input-group button:disabled { background-color: #555; }
-        
-        #referral-list-container { margin-top: 20px; text-align: left; }
-        #referral-list { list-style-type: none; padding: 0; max-height: 150px; overflow-y: auto; }
-        #referral-list li { background-color: #3a3c4c; padding: 8px 12px; border-radius: 6px; margin-bottom: 5px; font-size: 0.9em; }
-        
-        .main-button { width: 100%; background-color: var(--primary-accent-color); color: var(--tg-theme-button-text-color); border: none; padding: 15px 0; font-size: 1.1em; font-weight: bold; border-radius: 10px; cursor: pointer; margin-top: 10px; }
-        .main-button:disabled { background-color: #555; cursor: not-allowed; }
-        
-        .bottom-nav { width: 100%; display: flex; justify-content: space-around; padding: 10px 0; background-color: var(--tg-theme-secondary-bg-color); border-top: 1px solid #3a3c4c; position: relative; z-index: 1000; }
+        .input-group button { background-color: var(--primary-accent-color); border: none; color: var(--tg-theme-button-text-color); padding: 11px 15px; border-radius: 0 8px 8px 0; cursor: pointer; }
+        .main-button { width: 100%; background-color: var(--primary-accent-color); color: #000; border: none; padding: 15px 0; font-size: 1.1em; font-weight: bold; border-radius: 10px; cursor: pointer; margin-top: 10px; }
+        .main-button:disabled { background-color: #555; color: #aaa; cursor: not-allowed; }
+        .bottom-nav { width: 100%; display: flex; justify-content: space-around; padding: 10px 0; background-color: var(--tg-theme-secondary-bg-color); border-top: 1px solid #3a3c4c; }
         .nav-button { background: none; border: none; color: var(--tg-theme-hint-color); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.8em; }
         .nav-button.active { color: var(--primary-accent-color); }
         .nav-button i { font-size: 1.5em; }
-
-        .sct-ax8f3k {
-            background-color: var(--tg-theme-secondary-bg-color); border-radius: 16px; padding: 25px; max-width: 700px; width: 100%; border: 1px solid #3a3d52; box-shadow: 0 8px 30px rgba(0,0,0,0.2); text-align: center; box-sizing: border-box;
-        }
-        .h-g7k2p { color: var(--primary-accent-color); font-size: 1.8em; margin-top: 0; margin-bottom: 1rem; font-weight: 500; }
-        .h-g7k2p strong { color: #ffffff; font-weight: 700; }
-        .ul-b4n9s { list-style: none; padding: 0; margin: 1.5rem 0; display: flex; flex-direction: column; gap: 10px; }
-        .li-c7j3d { background-color: var(--tg-theme-bg-color); padding: 12px 20px; border-radius: 8px; border-left: 4px solid var(--primary-accent-color); font-size: 1.1em; text-align: left; display: flex; align-items: center; gap: 10px; }
-        .div-kLp8xV { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin: 2rem 0; }
-        .div-rt5j2m { background-color: var(--tg-theme-bg-color); padding: 15px; border-radius: 10px; border: 1px solid var(--tg-theme-hint-color); flex-grow: 1; min-width: 130px; transition: transform 0.2s ease, box-shadow 0.2s ease; }
-        .div-rt5j2m:hover { transform: translateY(-5px); box-shadow: 0 4px 15px rgba(74, 144, 226, 0.2); }
-        .div-rt5j2m span { display: block; }
-        .spn-rix-aB3d1 { color: var(--tg-theme-hint-color); font-size: 0.9em; margin-bottom: 5px; }
-        .spn-taka-fG5h2 { font-size: 1.4em; font-weight: bold; color: var(--primary-accent-color); }
-        .div-w-methods-yv2c6b h3 { color: var(--tg-theme-hint-color); text-transform: uppercase; font-size: 0.9em; letter-spacing: 1px; margin-bottom: 1rem; font-weight: 500; }
-        .div-icn-zT9m4P { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 12px; }
-        .spn-pmt-qW1b8R { background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); padding: 8px 16px; border-radius: 20px; font-size: 0.9em; font-weight: 500; }
-        
-        @media (max-width: 600px) {
-            .sct-ax8f3k { padding: 20px; }
-            .h-g7k2p { font-size: 1.5em; }
-            .li-c7j3d { font-size: 1em; }
-        }
-
-        /* Scroll Down Icon Styles (নতুন যোগ করা হয়েছে) */
-        #scroll-down-icon {
-            position: fixed;
-            bottom: 70px; /* নেভিগেশন বারের উপরে রাখার জন্য */
-            left: 50%;
-            transform: translateX(-50%);
-            width: 40px;
-            height: 40px;
-            background-color: rgba(42, 44, 60, 0.7); /* একটু স্বচ্ছ ব্যাকগ্রাউন্ড */
-            color: var(--primary-accent-color);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2em;
-            z-index: 999;
-            border: 1px solid var(--primary-accent-color);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            transition: opacity 0.3s ease; /* স্মুথ ভাবে দেখানোর জন্য */
-            cursor: pointer;
-        }
+        .withdraw-styles { text-align: center; }
+        .withdraw-styles h2 { color: var(--primary-accent-color); font-size: 1.8em; margin-bottom: 1rem; }
+        .withdraw-styles ul { list-style: none; padding: 0; margin: 1.5rem 0; display: flex; flex-direction: column; gap: 10px; }
+        .withdraw-styles li { background-color: var(--tg-theme-bg-color); padding: 12px 20px; border-radius: 8px; border-left: 4px solid var(--primary-accent-color); font-size: 1.1em; text-align: left; display: flex; align-items: center; gap: 10px; }
+        .withdraw-styles .rates { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin: 2rem 0; }
+        .withdraw-styles .rate-card { background-color: var(--tg-theme-bg-color); padding: 15px; border-radius: 10px; border: 1px solid var(--tg-theme-hint-color); flex-grow: 1; min-width: 130px; }
+        .withdraw-styles .methods h3 { color: var(--tg-theme-hint-color); text-transform: uppercase; font-size: 0.9em; letter-spacing: 1px; margin-bottom: 1rem; }
+        .withdraw-styles .method-icons { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .withdraw-styles .payment-method { background-color: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); padding: 8px 16px; border-radius: 20px; font-size: 0.9em; }
     </style>
 </head>
 <body>
     <!-- Mining Section -->
     <div id="mining-section" class="main-content active">
-        <!-- আপনার মাইনিং সেকশনের কনটেন্ট -->
-        <div class="info-card">
-            <h3><i class="fa-solid fa-person-digging"></i> Mining Hub</h3>
-            <p>Claim your mining reward every 8 hours!</p>
-            <button id="mining-claim-btn" class="main-button" disabled>Loading...</button>
-            <p id="mining-timer" class="timer-text">...</p>
-            <p>Made in Bangladesh 🇧🇩 | Developed by : Chiper X</p>
-        </div>
-        
-        <div class="info-card">
-            <h3><i class="fa-solid fa-circle-info"></i> কিছু কথা</h3>
-            <p>অনেক কষ্টে বটটি বানানো, তাই যদি আপনাকে এড দেখিয়ে লাভ না হয়, তাহলে কীভাবে টাকা দিবো। আমি অনলাইনের কাজ বুঝি, আমি নিজেও অনেক জায়গায় প্রতারিত হয়েছি। তাই কষ্ট টা বুঝি, আমার এড দেখিয়ে টাস্ক পূরণ করে লাভ হলে, টাকা উইথড্র দিলে সবাই পাবে। কিন্তু এড ভালোভাবে না দেখে, টাইমার শেষ হওয়ার আগেই বেক চলে আসা, 100 টার মধ্যে ৬/৭ টি এডে ক্লিক না করা, এরকম হলে তো এড কোম্পানি টাকা দেয় না। সো, ওরা টাকা না দিলে বট কীভাবে দিবে। ভালো করবেন, ভালো পাবেন। ভালোভাবে যারা কাজ করছে, তারা টাকা পাচ্ছে, আর যারা ভালোভাবে কাজ করছে না, তারা এড দেখলেও যেহেতু বট টাকা পাচ্ছে না, তাই তারাও টাকা পাচ্ছে না। এখানে একদম ক্লিয়ার সিস্টেম আছে, ফেক ইউজারদের ধরার। প্লিজ সবাই ভালোভাবে কাজ করুন।</p>
-        </div>
-      
-        <div class="info-card" style="text-align: left;">
-            <h3><i class="fa-solid fa-circle-info"></i> Contact</h3>
-            <p>এক নজরে কোথায় কী আছে?</p>
-            <ul>
-                <li><b>Mining : </b>এখানে আপনি ৮ ঘন্টা পর পর মাইনিং করে বোনাস Rix Coin জমিয়ে Withdraw করতে পারবেন।</li>
-                <li><strong>Task :</strong> এখানে দৈনিক ১০০টা করে এড দেখে, আপনার RiX Balnace বাড়াতে পাড়বেন।</li>
-                <li><strong>Account : </strong>এখানে আপনার ব্যালেন্স, একাউন্ট ডিটেইলস দেখতে পারবেন। এবং রেপারারাল সিস্টেমও পাবেন।</li>
-                <li><strong>Withdraw : </strong> আপনার উপার্জিত Rix Coin কে টাকায় কনভার্ট করে, বিকাশ/নগদ/রকেটে তুলতে পারবেন।</li>
-            </ul>
-        </div>
+        <div class="info-card"><h3><i class="fa-solid fa-person-digging"></i> Mining Hub</h3><p>Claim your mining reward every 8 hours!</p><button id="mining-claim-btn" class="main-button" disabled>Loading...</button><p id="mining-timer" class="timer-text">...</p><p>Made in Bangladesh 🇧🇩 | Developed by : Chiper X</p></div>
+        <div class="info-card"><h3><i class="fa-solid fa-circle-info"></i> কিছু কথা</h3><p>অনেক কষ্টে বটটি বানানো, তাই যদি আপনাকে এড দেখিয়ে লাভ না হয়, তাহলে কীভাবে টাকা দিবো। আমি অনলাইনের কাজ বুঝি, আমি নিজেও অনেক জায়গায় প্রতারিত হয়েছি। তাই কষ্ট টা বুঝি, আমার এড দেখিয়ে টাস্ক পূরণ করে লাভ হলে, টাকা উইথড্র দিলে সবাই পাবে। কিন্তু এড ভালোভাবে না দেখে, টাইমার শেষ হওয়ার আগেই বেক চলে আসা, 100 টার মধ্যে ৬/৭ টি এডে ক্লিক না করা, এরকম হলে তো এড কোম্পানি টাকা দেয় না। সো, ওরা টাকা না দিলে বট কীভাবে দিবে। ভালো করবেন, ভালো পাবেন। ভালোভাবে যারা কাজ করছে, তারা টাকা পাচ্ছে, আর যারা ভালোভাবে কাজ করছে না, তারা এড দেখলেও যেহেতু বট টাকা পাচ্ছে না, তাই তারাও টাকা পাচ্ছে না। এখানে একদম ক্লিয়ার সিস্টেম আছে, ফেক ইউজারদের ধরার। প্লিজ সবাই ভালোভাবে কাজ করুন।</p></div>
+        <div class="info-card" style="text-align: left;"><h3><i class="fa-solid fa-circle-info"></i> Contact</h3><p>এক নজরে কোথায় কী আছে?</p><ul><li><b>Mining : </b>এখানে আপনি ৮ ঘন্টা পর পর মাইনিং করে বোনাস Rix Coin জমিয়ে Withdraw করতে পারবেন।</li><li><strong>Task :</strong> এখানে দৈনিক ৩০০টা করে এড দেখে, আপনার RiX Balance বাড়াতে পাড়বেন।</li><li><strong>Account : </strong>এখানে আপনার ব্যালেন্স, একাউন্ট ডিটেইলস দেখতে পারবেন এবং রেফারাল সিস্টেমও পাবেন।</li><li><strong>Withdraw : </strong> আপনার উপার্জিত Rix Coin কে টাকায় কনভার্ট করে, বিকাশ/নগদ/রকেটে তুলতে পারবেন।</li></ul></div>
     </div>
-
     <!-- Task Section -->
     <div id="task-section" class="main-content">
-         <!-- আপনার টাস্ক সেকশনের কনটেন্ট -->
-        <div class="info-card">
-            <h3><i class="fa-solid fa-list-check"></i> Today's Tasks</h3>
-            <div class="info-item"><span>Total Tasks</span><span id="total-tasks">100</span></div>
-            <div class="info-item"><span>Completed</span><span id="tasks-completed">...</span></div>
-            <div class="info-item"><span>Remaining</span><span id="tasks-remaining">...</span></div>
-            <button id="start-task-btn" class="main-button" disabled>Watch Ad (+100 RiX)</button>
-        </div>
+        <div class="info-card"><h3><i class="fa-solid fa-list-check"></i> Today's Tasks</h3><div class="info-item"><span>Total Tasks</span><span id="total-tasks">300</span></div><div class="info-item"><span>Completed</span><span id="tasks-completed">...</span></div><div class="info-item"><span>Remaining</span><span id="tasks-remaining">...</span></div><button id="start-task-btn" class="main-button" disabled>Watch Ad (+100 RiX)</button></div>
     </div>
-
     <!-- Account Section -->
     <div id="account-section" class="main-content">
-        <!-- আপনার একাউন্ট সেকশনের কনটেন্ট -->
         <div class="info-card">
             <h3><i class="fa-solid fa-user"></i> My Profile</h3>
-            <div class="info-item"><span>User ID</span><span id="profile-userid">...</span></div>
+            <div class="info-item"><span>User Name</span><span id="profile-name">...</span></div> <!-- Typo Fixed -->
+            <div class="info-item"><span>User ID</span><span id="profile-id">...</span></div>
             <div class="info-item"><span>Total Balance</span><span id="profile-balance">...</span></div>
             <div class="info-item"><span>Today's Tasks Done</span><span id="profile-tasks-done">...</span></div>
         </div>
         <div id="referral-input-section" class="info-card" style="display: none;">
-            <h3><i class="fa-solid fa-gift"></i> Enter Referral Code</h3>
-            <p>Get a bonus by entering a friend's code!</p>
-            <div class="input-group">
-                <input type="text" id="referral-code-input" placeholder="Enter code here">
-                <button id="submit-referral-btn">Submit</button>
-            </div>
+            <h3><i class="fa-solid fa-gift"></i> Enter Referral Code</h3><p>Get a bonus by entering a friend's code!</p><div class="input-group"><input type="text" id="referral-code-input" placeholder="Enter code here"><button id="submit-referral-btn">Submit</button></div>
         </div>
         <div class="info-card">
-            <h3><i class="fa-solid fa-share-nodes"></i> My Referral</h3>
-            <div class="info-item"><span>Your Referrals</span><span id="referral-count">0</span></div>
-            <div class="input-group">
-                <input type="text" id="referral-link" readonly>
-                <button id="copy-btn"><i class="fa-regular fa-copy"></i> Copy</button>
-            </div>
-            <div id="referral-list-container">
-                <h4>Recent Referrals:</h4>
-                <ul id="referral-list"></ul>
-            </div>
+            <h3><i class="fa-solid fa-share-nodes"></i> My Referral</h3><div class="info-item"><span>Your Referrals</span><span id="referral-count">0</span></div><div class="input-group"><input type="text" id="referral-link" readonly><button id="copy-btn"><i class="fa-regular fa-copy"></i> Copy</button></div><div id="referral-list-container"><h4>Recent Referrals:</h4><ul id="referral-list"></ul></div>
         </div>
     </div>
-
     <!-- Withdraw Section -->
     <div id="withdraw-section" class="main-content">
-        <!-- আপনার উইথড্র সেকশনের কনটেন্ট -->
-        <section class="sct-ax8f3k">
-            <h2 class="h-g7k2p">সর্বনিম্ন উইথড্র <strong>25,000 Rix Coin</strong></h2>
-            <ul class="ul-b4n9s">
-                <li class="li-c7j3d">✔️ 5 Reffer করতে হবে</li>
-                <li class="li-c7j3d">✔️ 2 দিনের পুরোনো একাউন্ট হতে হবে</li>
-            </ul>
-            <div class="div-kLp8xV">
-                <div class="div-rt5j2m"><span class="spn-rix-aB3d1">1,000 Rix</span><span class="spn-taka-fG5h2">৳ 10</span></div>
-                <div class="div-rt5j2m"><span class="spn-rix-aB3d1">10,000 Rix</span><span class="spn-taka-fG5h2">৳ 150</span></div>
-                <div class="div-rt5j2m"><span class="spn-rix-aB3d1">20,000 Rix</span><span class="spn-taka-fG5h2">৳ 270</span></div>
-                <div class="div-rt5j2m"><span class="spn-rix-aB3d1">30,000 Rix</span><span class="spn-taka-fG5h2">৳ 450</span></div>
-            </div>
-            <div class="div-w-methods-yv2c6b">
-                <h3>Withdraw Only</h3>
-                <div class="div-icn-zT9m4P">
-                    <span class="spn-pmt-qW1b8R">bKash</span>
-                    <span class="spn-pmt-qW1b8R">Rocket</span>
-                    <span class="spn-pmt-qW1b8R">Nagad</span>
-                    <span class="spn-pmt-qW1b8R">BTC</span>
-                    <span class="spn-pmt-qW1b8R">USDT</span>
-                    <span class="spn-pmt-qW1b8R">Cellfin</span>
-                </div>
-            </div>
-        </section>
-        <div class="info-card">
-            <h3><i class="fa-solid fa-circle-info"></i> Contact</h3>
-            <p>যেকোনো সমস্যা / অভিযোগ জানাতে পারেন, এই আইডিতে : @forum_support20</p>
+        <div class="info-card withdraw-styles">
+            <section class="sct-ax8f3k">
+                <h2 class="h-g7k2p">সর্বনিম্ন উইথড্র <strong>25,000 Rix Coin</strong></h2>
+                <ul class="ul-b4n9s"><li class="li-c7j3d">✔️ 5 Reffer করতে হবে</li><li class="li-c7j3d">✔️ 2 দিনের পুরোনো একাউন্ট হতে হবে</li></ul>
+                <div class="div-kLp8xV"><div class="div-rt5j2m"><span class="spn-rix-aB3d1">1,000 Rix</span><span class="spn-taka-fG5h2">৳ 10</span></div><div class="div-rt5j2m"><span class="spn-rix-aB3d1">10,000 Rix</span><span class="spn-taka-fG5h2">৳ 150</span></div><div class="div-rt5j2m"><span class="spn-rix-aB3d1">20,000 Rix</span><span class="spn-taka-fG5h2">৳ 270</span></div><div class="div-rt5j2m"><span class="spn-rix-aB3d1">30,000 Rix</span><span class="spn-taka-fG5h2">৳ 450</span></div></div>
+                <div class="div-w-methods-yv2c6b"><h3>Withdraw Only</h3><div class="div-icn-zT9m4P"><span class="spn-pmt-qW1b8R">bKash</span><span class="spn-pmt-qW1b8R">Rocket</span><span class="spn-pmt-qW1b8R">Nagad</span><span class="spn-pmt-qW1b8R">BTC</span><span class="spn-pmt-qW1b8R">USDT</span><span class="spn-pmt-qW1b8R">Cellfin</span></div></div>
+            </section>
         </div>
+        <div class="info-card"><h3><i class="fa-solid fa-circle-info"></i> Contact</h3><p>যেকোনো সমস্যা / অভিযোগ জানাতে পারেন, এই আইডিতে : @forum_support20</p></div>
     </div>
-
-    <!-- Scroll Down Icon (নতুন যোগ করা হয়েছে) -->
-    <div id="scroll-down-icon" style="display: none;">
-        <i class="fa-solid fa-chevron-down fa-bounce"></i>
-    </div>
-
     <!-- Bottom Navigation Bar -->
     <nav class="bottom-nav">
         <button class="nav-button active" data-section="mining-section"><i class="fa-solid fa-person-digging"></i><span>Mining</span></button>
@@ -256,267 +86,191 @@
         <button class="nav-button" data-section="account-section"><i class="fa-solid fa-user"></i><span>Account</span></button>
         <button class="nav-button" data-section="withdraw-section"><i class="fa-solid fa-wallet"></i><span>Withdraw</span></button>
     </nav>
-   
+    
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        // --- টেলিগ্রাম ওয়েব অ্যাপ অবজেক্ট ইনিশিয়ালাইজেশন ---
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+        document.addEventListener('DOMContentLoaded', function () {
+            const tg = window.Telegram.WebApp;
+            tg.ready(); tg.expand(); tg.setHeaderColor('#171a21');
 
-        // --- DOM (Document Object Model) Elements ---
-        const sections = document.querySelectorAll('.main-content');
-        const navButtons = document.querySelectorAll('.nav-button');
-        const miningClaimBtn = document.getElementById('mining-claim-btn');
-        const miningTimerElem = document.getElementById('mining-timer');
-        const tasksCompletedElem = document.getElementById('tasks-completed');
-        const tasksRemainingElem = document.getElementById('tasks-remaining');
-        const startTaskBtn = document.getElementById('start-task-btn');
-        const profileNameElem = document.getElementById('profile-name');
-        const profileBalanceElem = document.getElementById('profile-balance');
-        const profileTasksDoneElem = document.getElementById('profile-tasks-done');
-        const referralInputSection = document.getElementById('referral-input-section');
-        const referralCodeInput = document.getElementById('referral-code-input');
-        const submitReferralBtn = document.getElementById('submit-referral-btn');
-        const referralCountElem = document.getElementById('referral-count');
-        const referralLinkInput = document.getElementById('referral-link');
-        const copyBtn = document.getElementById('copy-btn');
-        const referralListElem = document.getElementById('referral-list');
+            const sections = document.querySelectorAll('.main-content');
+            const navButtons = document.querySelectorAll('.nav-button');
+            const miningClaimBtn = document.getElementById('mining-claim-btn');
+            const miningTimerElem = document.getElementById('mining-timer');
+            const tasksCompletedElem = document.getElementById('tasks-completed');
+            const tasksRemainingElem = document.getElementById('tasks-remaining');
+            const startTaskBtn = document.getElementById('start-task-btn');
+            const profileNameElem = document.getElementById('profile-name');
+            const profileIdElem = document.getElementById('profile-id');
+            const profileBalanceElem = document.getElementById('profile-balance');
+            const profileTasksDoneElem = document.getElementById('profile-tasks-done');
+            const referralInputSection = document.getElementById('referral-input-section');
+            const referralCodeInput = document.getElementById('referral-code-input');
+            const submitReferralBtn = document.getElementById('submit-referral-btn');
+            const referralCountElem = document.getElementById('referral-count');
+            const referralLinkInput = document.getElementById('referral-link');
+            const copyBtn = document.getElementById('copy-btn');
+            const referralListElem = document.getElementById('referral-list');
 
-        // --- গ্লোবাল ভেরিয়েবল ---
-        let userData = null;
-        let miningInterval;
-        const DAILY_TASK_LIMIT = 100;
-        const MINING_COOLDOWN_HOURS = 8;
-        
-        // --- নেভিগেশন লজিক ---
-        navButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const sectionId = button.dataset.section;
-                sections.forEach(sec => sec.classList.remove('active'));
-                navButtons.forEach(btn => btn.classList.remove('active'));
-                const activeSection = document.getElementById(sectionId);
-                if (activeSection) activeSection.classList.add('active');
-                button.classList.add('active');
-                if (sectionId === 'account-section' && userData) {
-                    loadReferrals(userData.user_id);
-                }
-            });
-        });
-
-        // --- ডেটা লোডিং এবং UI আপডেট ---
-        async function loadUserData() {
-            if (!tg.initDataUnsafe.user?.id) return showError("Authentication Error!");
-            const user = tg.initDataUnsafe.user;
-            const queryParams = new URLSearchParams({ user_id: user.id, first_name: user.first_name, username: user.username });
-            try {
-                const response = await fetch(`/api/user_data?${queryParams.toString()}`);
-                if (!response.ok) throw new Error(`Failed to load user data. Status: ${response.status}`);
-                userData = await response.json();
-                updateAllUI();
-            } catch (error) { showError(error.message); }
-        }
-
-        function updateAllUI() {
-            if (!userData) return;
-            const completed = userData.daily_tasks_completed || 0;
-            const balance = userData.rix_balance || 0;
+            let userData = null; let miningInterval;
+            const DAILY_TASK_LIMIT = 300; const MINING_COOLDOWN_HOURS = 8;
             
-            if (tasksCompletedElem) tasksCompletedElem.innerText = completed;
-            if (tasksRemainingElem) tasksRemainingElem.innerText = DAILY_TASK_LIMIT - completed;
-            if (startTaskBtn) {
-                startTaskBtn.disabled = completed >= DAILY_TASK_LIMIT;
-                startTaskBtn.innerText = completed >= DAILY_TASK_LIMIT ? "All Tasks Done" : "Watch Ad (+200 RiX)";
-            }
-            if (profileNameElem) profileNameElem.innerText = userData.first_name;
-            if (profileBalanceElem) profileBalanceElem.innerText = formatBalance(balance) + ' RiX';
-            if (profileTasksDoneElem) profileTasksDoneElem.innerText = `${completed} / ${DAILY_TASK_LIMIT}`;
-            if (referralLinkInput) {
-                const botUsername = "Rix_earn_bot";
-                referralLinkInput.value = `https://t.me/${botUsername}?start=${userData.referral_code}`;
-            }
-            if (referralInputSection) {
-                referralInputSection.style.display = (userData.referred_by === null) ? 'block' : 'none';
-            }
-            updateMiningStatus();
-        }
-
-        function updateMiningStatus() {
-            if (!userData || !miningClaimBtn) return;
-            const lastClaimTime = userData.last_mining_claim ? new Date(userData.last_mining_claim) : null;
-            if (miningInterval) clearInterval(miningInterval);
-            if (!lastClaimTime) {
-                miningClaimBtn.disabled = false; miningClaimBtn.innerText = "Claim Mining Reward";
-                miningTimerElem.innerText = "Ready to claim!"; return;
-            }
-            const nextClaimTime = new Date(lastClaimTime.getTime() + MINING_COOLDOWN_HOURS * 60 * 60 * 1000);
-            function updateTimer() {
-                const now = new Date(); const timeLeft = nextClaimTime - now;
-                if (timeLeft <= 0) {
-                    miningClaimBtn.disabled = false; miningClaimBtn.innerText = "Claim Mining Reward";
-                    miningTimerElem.innerText = "Ready to claim!"; clearInterval(miningInterval);
-                } else {
-                    miningClaimBtn.disabled = true; miningClaimBtn.innerText = "Mining...";
-                    const h = Math.floor(timeLeft / 3600000), m = Math.floor((timeLeft % 3600000) / 60000), s = Math.floor((timeLeft % 60000) / 1000);
-                    miningTimerElem.innerText = `Next claim in: ${pad(h)}:${pad(m)}:${pad(s)}`;
-                }
-            }
-            updateTimer();
-            miningInterval = setInterval(updateTimer, 1000);
-        }
-        
-        async function loadReferrals(userId) {
-            referralListElem.innerHTML = '<li>Loading...</li>';
-            const response = await fetch(`/api/get_referrals?user_id=${userId}`);
-            const referrals = await response.json();
-            referralCountElem.innerText = referrals.length;
-            referralListElem.innerHTML = '';
-            if (referrals.length === 0) { referralListElem.innerHTML = '<li>No referrals yet.</li>'; return; }
-            referrals.forEach(ref => {
-                const li = document.createElement('li');
-                const date = new Date(ref.created_at).toLocaleDateString("en-GB");
-                li.innerText = `${ref.first_name} - Joined on ${date}`;
-                referralListElem.appendChild(li);
+            navButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const sectionId = button.dataset.section;
+                    sections.forEach(sec => sec.classList.remove('active'));
+                    navButtons.forEach(btn => btn.classList.remove('active'));
+                    document.getElementById(sectionId)?.classList.add('active');
+                    button.classList.add('active');
+                    if (sectionId === 'account-section' && userData) {
+                        loadReferrals(userData.user_id);
+                    }
+                });
             });
-        }
 
-        function showMonetagAd() {
-            return new Promise((resolve, reject) => {
-                if (typeof show_9504423 === 'function') {
-                    show_9504423().then(() => resolve(true)).catch(error => reject(error));
-                } else { reject(new Error("Ad service not available.")); }
-            });
-        }
-
-        startTaskBtn.addEventListener('click', async () => {
-            if (startTaskBtn.disabled) return;
-            startTaskBtn.disabled = true; startTaskBtn.innerText = "Loading Ad...";
-            try {
-                await showMonetagAd();
-                const response = await fetch('/api/complete_task', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: tg.initDataUnsafe.user.id }) });
-                const result = await response.json();
-                if (result.success) {
-                    tg.HapticFeedback.notificationOccurred('success');
-                    showError(result.message); userData = result.user_data; updateAllUI();
-                } else { showError(result.message || "Task failed."); updateAllUI(); }
-            } catch (error) {
-                showError("Ad could not be shown. Please try again.");
-                startTaskBtn.disabled = false; startTaskBtn.innerText = "Watch Ad (+200 RiX)";
-            }
-        });
-        
-        miningClaimBtn.addEventListener('click', async () => {
-            if (!userData) return showError("User data not loaded.");
-            miningClaimBtn.disabled = true; miningClaimBtn.innerText = "Claiming...";
-            try {
-                const response = await fetch('/api/claim_mining', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: userData.user_id }) });
-                const result = await response.json();
-                if (result.success) {
-                    tg.HapticFeedback.notificationOccurred('success');
-                    showError(result.message); userData = result.user_data; updateAllUI();
-                } else { showError(result.message); updateMiningStatus(); }
-            } catch (error) { showError("An error occurred."); }
-        });
-
-        copyBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(referralLinkInput.value).then(() => showError('Referral link copied!'));
-        });
-
-        submitReferralBtn.addEventListener('click', async () => {
-            const code = referralCodeInput.value;
-            if (!code) return showError("Please enter a referral code.");
-            submitReferralBtn.disabled = true; submitReferralBtn.innerText = "Submitting...";
-            try {
-                const response = await fetch('/api/submit_referral', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: userData.user_id, referral_code: code }) });
-                const result = await response.json();
-                if (result.success) {
-                    showError(result.message);
-                    userData = result.user_data;
+            async function loadUserData() {
+                if (!tg.initDataUnsafe.user?.id) return showMessage("Authentication Error!", true);
+                const user = tg.initDataUnsafe.user;
+                const queryParams = new URLSearchParams({ user_id: user.id, first_name: user.first_name, username: user.username });
+                try {
+                    const response = await fetch(`/api/user_data?${queryParams.toString()}`);
+                    if (!response.ok) throw new Error(`Failed to load user data. Status: ${response.status}`);
+                    userData = await response.json();
                     updateAllUI();
-                } else { showError(result.message || "Failed to submit code."); }
-            } catch (error) { showError("An error occurred.");
-            } finally { submitReferralBtn.disabled = false; submitReferralBtn.innerText = "Submit"; }
-        });
-
-        // --- Helper Functions ---
-        function formatBalance(num) { return new Intl.NumberFormat().format(Math.floor(num)); }
-        function pad(n) { return n < 10 ? '0' + n : n; }
-        function showError(message) { tg.showAlert(message); }
-        
-        // --- Initial Load ---
-        loadUserData();
-        
-            // এই সম্পূর্ণ স্ক্রিপ্টটি নতুন করে যোগ করা হয়েছে
-    document.addEventListener('DOMContentLoaded', () => {
-        const navButtons = document.querySelectorAll('.nav-button');
-        const contentSections = document.querySelectorAll('.main-content');
-        const scrollIcon = document.getElementById('scroll-down-icon');
-
-        // স্ক্রল আইকন চেক এবং আপডেট করার ফাংশন
-        function updateScrollIcon() {
-            const activeSection = document.querySelector('.main-content.active');
-            if (!activeSection) {
-                scrollIcon.style.display = 'none';
-                return;
+                } catch (error) { showMessage(error.message, true); }
             }
 
-            // কনটেন্ট কি স্ক্রল করা সম্ভব?
-            const isScrollable = activeSection.scrollHeight > activeSection.clientHeight;
+            function updateAllUI() {
+                if (!userData) return;
+                const completed = userData.daily_tasks_completed || 0;
+                const balance = userData.rix_balance || 0;
+                
+                if(document.getElementById('total-tasks')) document.getElementById('total-tasks').innerText = DAILY_TASK_LIMIT;
+                if (tasksCompletedElem) tasksCompletedElem.innerText = completed;
+                if (tasksRemainingElem) tasksRemainingElem.innerText = DAILY_TASK_LIMIT - completed;
+                if (startTaskBtn) {
+                    startTaskBtn.disabled = completed >= DAILY_TASK_LIMIT;
+                    startTaskBtn.innerText = completed >= DAILY_TASK_LIMIT ? "All Tasks Done" : "Watch Ad (+100 RiX)";
+                }
+                if (profileNameElem) profileNameElem.innerText = userData.first_name;
+                if (profileIdElem) profileIdElem.innerText = userData.user_id;
+                if (profileBalanceElem) profileBalanceElem.innerText = formatBalance(balance) + ' RiX';
+                if (profileTasksDoneElem) profileTasksDoneElem.innerText = `${completed} / ${DAILY_TASK_LIMIT}`;
+                if (referralLinkInput) {
+                    const botUsername = "Rix_earn_bot";
+                    referralLinkInput.value = `https://t.me/${botUsername}?start=${userData.referral_code}`;
+                }
+                if (referralInputSection) {
+                    referralInputSection.style.display = (userData.referred_by === null) ? 'block' : 'none';
+                }
+                updateMiningStatus();
+            }
+
+            function updateMiningStatus() {
+                if (!userData || !miningClaimBtn) return;
+                const lastClaimTime = userData.last_mining_claim ? new Date(userData.last_mining_claim) : null;
+                if (miningInterval) clearInterval(miningInterval);
+                if (!lastClaimTime) {
+                    miningClaimBtn.disabled = false; miningClaimBtn.innerText = "Claim Mining Reward";
+                    miningTimerElem.innerText = "Ready to claim!"; return;
+                }
+                const nextClaimTime = new Date(lastClaimTime.getTime() + MINING_COOLDOWN_HOURS * 60 * 60 * 1000);
+                function updateTimer() {
+                    const now = new Date(); const timeLeft = nextClaimTime - now;
+                    if (timeLeft <= 0) {
+                        miningClaimBtn.disabled = false; miningClaimBtn.innerText = "Claim Mining Reward";
+                        miningTimerElem.innerText = "Ready to claim!"; clearInterval(miningInterval);
+                    } else {
+                        miningClaimBtn.disabled = true; miningClaimBtn.innerText = "Mining...";
+                        const h = Math.floor(timeLeft / 3600000), m = Math.floor((timeLeft % 3600000) / 60000), s = Math.floor((timeLeft % 60000) / 1000);
+                        miningTimerElem.innerText = `Next claim in: ${pad(h)}:${pad(m)}:${pad(s)}`;
+                    }
+                }
+                updateTimer();
+                miningInterval = setInterval(updateTimer, 1000);
+            }
             
-            // ব্যবহারকারী কি একদম নিচে স্ক্রল করেছে? (ছোট একটি বাফার সহ)
-            const isAtBottom = activeSection.scrollHeight - activeSection.scrollTop <= activeSection.clientHeight + 2;
-
-            if (isScrollable && !isAtBottom) {
-                scrollIcon.style.display = 'flex'; // আইকন দেখাও
-            } else {
-                scrollIcon.style.display = 'none'; // আইকন হাইড করো
-            }
-        }
-
-        // নেভিগেশন বাটন ক্লিকের জন্য ইভেন্ট লিসেনার
-        navButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const sectionId = button.getAttribute('data-section');
-
-                // সব বাটন থেকে 'active' ক্লাস সরিয়ে দাও
-                navButtons.forEach(btn => btn.classList.remove('active'));
-                // ক্লিক করা বাটনে 'active' ক্লাস যোগ করো
-                button.classList.add('active');
-
-                // সব কনটেন্ট সেকশন হাইড করো
-                contentSections.forEach(section => section.classList.remove('active'));
-                // নির্দিষ্ট সেকশন দেখাও
-                document.getElementById(sectionId).classList.add('active');
-
-                // সেকশন পরিবর্তনের পর স্ক্রল আইকন আপডেট করো
-                updateScrollIcon();
-            });
-        });
-
-        // প্রতিটি কনটেন্ট সেকশনে স্ক্রল ইভেন্ট যোগ করা
-        contentSections.forEach(section => {
-            section.addEventListener('scroll', updateScrollIcon);
-        });
-
-        // স্ক্রল আইকনে ক্লিক করলে নিচে স্ক্রল হবে
-        scrollIcon.addEventListener('click', () => {
-            const activeSection = document.querySelector('.main-content.active');
-            if (activeSection) {
-                activeSection.scrollBy({
-                    top: 200, // ২০০ পিক্সেল নিচে স্ক্রল হবে
-                    behavior: 'smooth' // স্মুথলি স্ক্রল হবে
+            async function loadReferrals(userId) {
+                if (!referralListElem) return;
+                referralListElem.innerHTML = '<li>Loading...</li>';
+                const response = await fetch(`/api/get_referrals?user_id=${userId}`);
+                const referrals = await response.json();
+                referralCountElem.innerText = referrals.length;
+                referralListElem.innerHTML = '';
+                if (referrals.length === 0) { referralListElem.innerHTML = '<li>No referrals yet.</li>'; return; }
+                referrals.forEach(ref => {
+                    const li = document.createElement('li');
+                    const date = new Date(ref.created_at).toLocaleDateString("en-GB");
+                    li.innerText = `${ref.first_name} - Joined on ${date}`;
+                    referralListElem.appendChild(li);
                 });
             }
+
+            function showMonetagAd() {
+                return new Promise((resolve, reject) => {
+                    if (typeof show_9504423 === 'function') {
+                        show_9504423().then(() => resolve(true)).catch(error => reject(error));
+                    } else { reject(new Error("Ad service not available.")); }
+                });
+            }
+
+            if(startTaskBtn) startTaskBtn.addEventListener('click', async () => {
+                if (startTaskBtn.disabled) return;
+                startTaskBtn.disabled = true; startTaskBtn.innerText = "Loading Ad...";
+                try {
+                    await showMonetagAd();
+                    const response = await fetch('/api/complete_task', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: tg.initDataUnsafe.user.id }) });
+                    const result = await response.json();
+                    if (result.success) {
+                        tg.HapticFeedback.notificationOccurred('success');
+                        showMessage(result.message); userData = result.user_data; updateAllUI();
+                    } else { showMessage(result.message || "Task failed.", true); updateAllUI(); }
+                } catch (error) {
+                    showMessage("Ad could not be shown. Please try again.", true);
+                    startTaskBtn.disabled = false; startTaskBtn.innerText = "Watch Ad (+100 RiX)";
+                }
+            });
+            
+            if(miningClaimBtn) miningClaimBtn.addEventListener('click', async () => {
+                if (!userData) return showMessage("User data not loaded.", true);
+                miningClaimBtn.disabled = true; miningClaimBtn.innerText = "Claiming...";
+                try {
+                    const response = await fetch('/api/claim_mining', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: userData.user_id }) });
+                    const result = await response.json();
+                    if (result.success) {
+                        tg.HapticFeedback.notificationOccurred('success');
+                        showMessage(result.message); userData = result.user_data; updateAllUI();
+                    } else { showMessage(result.message, true); updateMiningStatus(); }
+                } catch (error) { showMessage("An error occurred.", true); }
+            });
+
+            if(copyBtn) copyBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(referralLinkInput.value).then(() => showMessage('Referral link copied!'));
+            });
+
+            if(submitReferralBtn) submitReferralBtn.addEventListener('click', async () => {
+                const code = referralCodeInput.value;
+                if (!code) return showMessage("Please enter a referral code.", true);
+                submitReferralBtn.disabled = true; submitReferralBtn.innerText = "Submitting...";
+                try {
+                    const response = await fetch('/api/submit_referral', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: userData.user_id, referral_code: code }) });
+                    const result = await response.json();
+                    if (result.success) {
+                        showMessage(result.message);
+                        userData = result.user_data; updateAllUI();
+                    } else { showMessage(result.message || "Failed to submit code.", true); }
+                } catch (error) { showMessage("An error occurred.", true);
+                } finally { submitReferralBtn.disabled = false; submitReferralBtn.innerText = "Submit"; }
+            });
+
+            function formatBalance(num) { return new Intl.NumberFormat().format(Math.floor(num)); }
+            function pad(n) { return n < 10 ? '0' + n : n; }
+            function showMessage(message, isError = false) {
+                tg.showAlert(message);
+            }
+            
+            loadUserData();
         });
-
-        // ব্রাউজার উইন্ডো রিসাইজ হলে আইকন আপডেট করো
-        window.addEventListener('resize', updateScrollIcon);
-
-        // পেজ লোড হওয়ার সাথে সাথে প্রথমবার আইকন চেক করো
-        updateScrollIcon();
-    });
-   
-
     </script>
 </body>
 </html>
