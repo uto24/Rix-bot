@@ -12,13 +12,15 @@
     <script async src='https://libtl.com/sdk.js' data-zone='9504423' data-sdk='show_9504423'></script>
 
     <style>
-        :root { --tg-theme-bg-color: #171a21; --tg-theme-text-color: #fff; --tg-theme-button-color: #3bff00; --tg-theme-button-text-color: #000; --tg-theme-hint-color: #9099a2; --tg-theme-secondary-bg-color: #2a2c3c; --primary-accent-color: #3bff00; }
+        :root { --tg-theme-bg-color: #171a21; --tg-theme-text-color: #fff; --tg-theme-button-color: #3bff00; --tg-theme-button-text-color: #fff; --tg-theme-hint-color: #9099a2; --tg-theme-secondary-bg-color: #2a2c3c; --primary-accent-color: #3bff00; }
+        
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: url(https://i.postimg.cc/FzSSKJ7b/74f07007-acd0-4431-a647-ae287dc00382.jpg) no-repeat center center fixed; background-size: cover; color: var(--tg-theme-text-color); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         .main-content { flex-grow: 1; padding: 20px; overflow-y: auto; display: none; text-align: center; }
         .main-content.active { display: flex; flex-direction: column; align-items: center; }
-        .info-card { background: rgba(0, 77, 7, 0.22); border-radius: 16px; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(0, 255, 66, 0.12); padding: 20px; margin-bottom: 15px; width: 90%; max-width: 400px; box-sizing: border-box; }
+        .info-card { background: rgba(0, 77, 7, 0.22); border-radius: 16px; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(0, 255, 66, 0.12); padding: 20px; margin-bottom: 15px; width: 90%; max-width: 400px; box-sizing: border-box; color : #fff; }
         .info-card h3 { margin-top: 0; color: var(--primary-accent-color); display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .info-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #3a3c4c; }
+        .info-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #3a3c4c;
+         }
         .info-item:last-child { border-bottom: none; }
         .input-group { display: flex; align-items: center; margin-top: 10px; }
         .input-group input { flex-grow: 1; background-color: #3a3c4c; border: 1px solid #555; color: white; padding: 10px; border-radius: 8px 0 0 8px; font-size: 0.9em; }
@@ -60,7 +62,25 @@
             -webkit-backdrop-filter: blur(5px);
             transition: opacity 0.3s ease; /* স্মুথ ভাবে দেখানোর জন্য */
         }
-    </style>
+        
+        
+        /* Light Theme - Activated based on user's device settings */
+        @media (prefers-color-scheme: light) {
+            :root {
+                --tg-theme-bg-color: #f0f2f5;
+                --tg-theme-text-color: #1c1e21;
+                --tg-theme-button-color: #00a321; /* Slightly darker green for better contrast on light bg */
+                --tg-theme-button-text-color: #ffffff;
+                --tg-theme-hint-color: #65676b;
+                --tg-theme-secondary-bg-color: #ffffff;
+                --primary-accent-color: #00a321;
+                --card-bg-color: rgba(255, 255, 255, 0.8);
+                --card-border-color: rgba(0, 0, 0, 0.1);
+                --input-bg-color: #e4e6eb;
+                --border-color: #ced0d4;
+            }
+        }_
+    </style>    
 </head>
 <body>
     <!-- Mining Section -->
@@ -94,7 +114,7 @@
         <div class="info-card withdraw-styles">
             <section class="sct-ax8f3k">
                 <h2 class="h-g7k2p">সর্বনিম্ন উইথড্র <strong>25,000 Rix Coin</strong></h2>
-                <ul class="ul-b4n9s"><li class="li-c7j3d">✔️ 5 Reffer করতে হবে</li><li class="li-c7j3d">✔️ 2 দিনের পুরোনো একাউন্ট হতে হবে</li></ul>
+                <ul class="ul-b4n9s"><li class="li-c7j3d" style="color: #000;">✔️ 5 Reffer করতে হবে</li><li class="li-c7j3d" style="color: #000;">✔️ 2 দিনের পুরোনো একাউন্ট হতে হবে</li></ul>
                 <div class="div-kLp8xV"><div class="div-rt5j2m"><span class="spn-rix-aB3d1">1,000 Rix</span><span class="spn-taka-fG5h2">৳ 10</span></div><div class="div-rt5j2m"><span class="spn-rix-aB3d1">10,000 Rix</span><span class="spn-taka-fG5h2">৳ 150</span></div><div class="div-rt5j2m"><span class="spn-rix-aB3d1">20,000 Rix</span><span class="spn-taka-fG5h2">৳ 270</span></div><div class="div-rt5j2m"><span class="spn-rix-aB3d1">30,000 Rix</span><span class="spn-taka-fG5h2">৳ 450</span></div></div>
                 <div class="div-w-methods-yv2c6b"><h3>Withdraw Only</h3><div class="div-icn-zT9m4P"><span class="spn-pmt-qW1b8R">bKash</span><span class="spn-pmt-qW1b8R">Rocket</span><span class="spn-pmt-qW1b8R">Nagad</span><span class="spn-pmt-qW1b8R">BTC</span><span class="spn-pmt-qW1b8R">USDT</span><span class="spn-pmt-qW1b8R">Cellfin</span></div></div>
             </section>
