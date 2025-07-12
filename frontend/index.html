@@ -8,17 +8,21 @@
     <!-- Font Awesome আইকনের জন্য CDN লিঙ্ক -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@100..800&display=swap" rel="stylesheet">
+    
     <!-- Monetag SDK লোড করার জন্য -->
     <script async src='https://libtl.com/sdk.js' data-zone='9504423' data-sdk='show_9504423'></script>
 
     <style>
         :root { --tg-theme-bg-color: #171a21; --tg-theme-text-color: #fff; --tg-theme-button-color: #3bff00; --tg-theme-button-text-color: #fff; --tg-theme-hint-color: #9099a2; --tg-theme-secondary-bg-color: #2a2c3c; --primary-accent-color: #3bff00; }
         
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: url(https://i.postimg.cc/FzSSKJ7b/74f07007-acd0-4431-a647-ae287dc00382.jpg) no-repeat center center fixed; background-size: cover; color: var(--tg-theme-text-color); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        body { font-family: "Anek Bangla", sans-serif;; background: url(https://i.postimg.cc/FzSSKJ7b/74f07007-acd0-4431-a647-ae287dc00382.jpg) no-repeat center center fixed; background-size: cover; color: var(--tg-theme-text-color); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         .main-content { flex-grow: 1; padding: 20px; overflow-y: auto; display: none; text-align: center; }
         .main-content.active { display: flex; flex-direction: column; align-items: center; }
-        .info-card { background: rgba(0, 77, 7, 0.22); border-radius: 16px; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(0, 255, 66, 0.12); padding: 20px; margin-bottom: 15px; width: 90%; max-width: 400px; box-sizing: border-box; color : #fff; }
-        .info-card h3 { margin-top: 0; color: var(--primary-accent-color); display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .info-card { background: rgba(0, 90, 7, 0.30); border-radius: 16px; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(0, 255, 66, 0.12); padding: 20px; margin-bottom: 15px; width: 90%; max-width: 400px; box-sizing: border-box; color : #fff; }
+        .info-card h3 { margin-top: 0; color: #3bff00; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .info-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #3a3c4c;
          }
         .info-item:last-child { border-bottom: none; }
@@ -87,7 +91,7 @@
     <div id="mining-section" class="main-content active">
         <div class="info-card"><h3><i class="fa-solid fa-person-digging"></i> Mining Hub</h3><p>Claim your mining reward every 8 hours!</p><button id="mining-claim-btn" class="main-button" disabled>Loading...</button><p id="mining-timer" class="timer-text">...</p><p>Made in Bangladesh 🇧🇩 | Developed by : Chiper X</p></div>
         <div class="info-card"><h3><i class="fa-solid fa-circle-info"></i> কিছু কথা</h3><p>অনেক কষ্টে বটটি বানানো, তাই যদি আপনাকে এড দেখিয়ে লাভ না হয়, তাহলে কীভাবে টাকা দিবো। আমি অনলাইনের কাজ বুঝি, আমি নিজেও অনেক জায়গায় প্রতারিত হয়েছি। তাই কষ্ট টা বুঝি, আমার এড দেখিয়ে টাস্ক পূরণ করে লাভ হলে, টাকা উইথড্র দিলে সবাই পাবে। কিন্তু এড ভালোভাবে না দেখে, টাইমার শেষ হওয়ার আগেই বেক চলে আসা, 100 টার মধ্যে ৬/৭ টি এডে ক্লিক না করা, এরকম হলে তো এড কোম্পানি টাকা দেয় না। সো, ওরা টাকা না দিলে বট কীভাবে দিবে। ভালো করবেন, ভালো পাবেন। ভালোভাবে যারা কাজ করছে, তারা টাকা পাচ্ছে, আর যারা ভালোভাবে কাজ করছে না, তারা এড দেখলেও যেহেতু বট টাকা পাচ্ছে না, তাই তারাও টাকা পাচ্ছে না। এখানে একদম ক্লিয়ার সিস্টেম আছে, ফেক ইউজারদের ধরার। প্লিজ সবাই ভালোভাবে কাজ করুন।</p></div>
-        <div class="info-card" style="text-align: left;"><h3><i class="fa-solid fa-circle-info"></i> Contact</h3><p>এক নজরে কোথায় কী আছে?</p><ul><li><b>Mining : </b>এখানে আপনি ৮ ঘন্টা পর পর মাইনিং করে বোনাস Rix Coin জমিয়ে Withdraw করতে পারবেন।</li><li><strong>Task :</strong> এখানে দৈনিক ৩০০টা করে এড দেখে, আপনার RiX Balance বাড়াতে পাড়বেন।</li><li><strong>Account : </strong>এখানে আপনার ব্যালেন্স, একাউন্ট ডিটেইলস দেখতে পারবেন এবং রেফারাল সিস্টেমও পাবেন।</li><li><strong>Withdraw : </strong> আপনার উপার্জিত Rix Coin কে টাকায় কনভার্ট করে, বিকাশ/নগদ/রকেটে তুলতে পারবেন।</li></ul></div>
+        <div class="info-card" style="text-align: left;"><h3><i class="fa-regular fa-circle-question"></i> শর্টকার্ট</h3><p></p><ul><li><b>Mining : </b>এখানে আপনি ৮ ঘন্টা পর পর মাইনিং করে বোনাস Rix Coin জমিয়ে Withdraw করতে পারবেন।</li><li><strong>Task :</strong> এখানে দৈনিক ৩০০টা করে এড দেখে, আপনার RiX Balance বাড়াতে পাড়বেন।</li><li><strong>Account : </strong>এখানে আপনার ব্যালেন্স, একাউন্ট ডিটেইলস দেখতে পারবেন এবং রেফারাল সিস্টেমও পাবেন।</li><li><strong>Withdraw : </strong> আপনার উপার্জিত Rix Coin কে টাকায় কনভার্ট করে, বিকাশ/নগদ/রকেটে তুলতে পারবেন।</li></ul></div>
     </div>
     <!-- Task Section -->
     <div id="task-section" class="main-content">
@@ -106,7 +110,7 @@
             <h3><i class="fa-solid fa-gift"></i> Enter Referral Code</h3><p>Get a bonus by entering a friend's code!</p><div class="input-group"><input type="text" id="referral-code-input" placeholder="Enter code here"><button id="submit-referral-btn">Submit</button></div>
         </div>
         <div class="info-card">
-            <h3><i class="fa-solid fa-share-nodes"></i> My Referral</h3><div class="info-item"><span>Your Referrals</span><span id="referral-count">0</span></div><div class="input-group"><input type="text" id="referral-link" readonly><button id="copy-btn"><i class="fa-regular fa-copy"></i> Copy</button></div><div id="referral-list-container"><h4>Recent Referrals:</h4><ul id="referral-list"></ul></div>
+            <h3><i class="fa-solid fa-share-nodes"></i> My Referral</h3><div class="info-item"><span>Your Referrals Code</span><span id="referral-count">0</span></div><div class="input-group"><input type="text" id="referral-link" readonly><button id="copy-btn"><i class="fa-regular fa-copy"></i> Copy</button></div><div id="referral-list-container"><h4>Recent Referrals:</h4><ul id="referral-list"></ul></div>
         </div>
     </div>
     <!-- Withdraw Section -->
@@ -114,9 +118,9 @@
         <div class="info-card withdraw-styles">
             <section class="sct-ax8f3k">
                 <h2 class="h-g7k2p">সর্বনিম্ন উইথড্র <strong>25,000 Rix Coin</strong></h2>
-                <ul class="ul-b4n9s"><li class="li-c7j3d" style="color: #000;">✔️ 5 Reffer করতে হবে</li><li class="li-c7j3d" style="color: #000;">✔️ 2 দিনের পুরোনো একাউন্ট হতে হবে</li></ul>
-                <div class="div-kLp8xV"><div class="div-rt5j2m"><span class="spn-rix-aB3d1">1,000 Rix</span><span class="spn-taka-fG5h2">৳ 10</span></div><div class="div-rt5j2m"><span class="spn-rix-aB3d1">10,000 Rix</span><span class="spn-taka-fG5h2">৳ 150</span></div><div class="div-rt5j2m"><span class="spn-rix-aB3d1">20,000 Rix</span><span class="spn-taka-fG5h2">৳ 270</span></div><div class="div-rt5j2m"><span class="spn-rix-aB3d1">30,000 Rix</span><span class="spn-taka-fG5h2">৳ 450</span></div></div>
-                <div class="div-w-methods-yv2c6b"><h3>Withdraw Only</h3><div class="div-icn-zT9m4P"><span class="spn-pmt-qW1b8R">bKash</span><span class="spn-pmt-qW1b8R">Rocket</span><span class="spn-pmt-qW1b8R">Nagad</span><span class="spn-pmt-qW1b8R">BTC</span><span class="spn-pmt-qW1b8R">USDT</span><span class="spn-pmt-qW1b8R">Cellfin</span></div></div>
+                <ul class="ul-b4n9s"><li class="li-c7j3d" style="color: #000; background: #3bff00;">✔️ 5 Reffer করতে হবে</li><li class="li-c7j3d" style="color: #000; background: #3bff00;">✔️ 2 দিনের পুরোনো একাউন্ট হতে হবে</li></ul>
+                <div class="div-kLp8xV"><div class="div-rt5j2m"><span class="spn-rix-aB3d1">1,000 Rix</span><span class="spn-taka-fG5h2"> &nbsp;  = &nbsp; ৳ 10</span></div><div class="div-rt5j2m"><span class="spn-rix-aB3d1">10,000 Rix</span><span class="spn-taka-fG5h2"> &nbsp;  = &nbsp; ৳ 150</span></div><div class="div-rt5j2m"><span class="spn-rix-aB3d1">20,000 Rix</span><span class="spn-taka-fG5h2"> &nbsp;  = &nbsp; ৳ 270</span></div><div class="div-rt5j2m"><span class="spn-rix-aB3d1">30,000 Rix</span><span class="spn-taka-fG5h2"> &nbsp;  = &nbsp; ৳ 450</span></div></div>
+                <div class="div-w-methods-yv2c6b"><h3>Withdraw Only</h3><div class="div-icn-zT9m4P"><span class="spn-pmt-qW1b8R">bKash &nbsp;</span><span class="spn-pmt-qW1b8R">Rocket &nbsp;</span><span class="spn-pmt-qW1b8R">Nagad &nbsp;</span><span class="spn-pmt-qW1b8R">BTC &nbsp;</span><span class="spn-pmt-qW1b8R">USDT &nbsp;</span><span class="spn-pmt-qW1b8R">Cellfin</span></div></div>
             </section>
         </div>
         <div class="info-card"><h3><i class="fa-solid fa-circle-info"></i> Contact</h3><p>যেকোনো সমস্যা / অভিযোগ জানাতে পারেন, এই আইডিতে : @forum_support20</p></div>
@@ -205,7 +209,7 @@
                 if (profileTasksDoneElem) profileTasksDoneElem.innerText = `${completed} / ${DAILY_TASK_LIMIT}`;
                 if (referralLinkInput) {
                     const botUsername = "Rix_earn_bot";
-                    referralLinkInput.value = `https://t.me/${botUsername}?start=${userData.referral_code}`;
+                    referralLinkInput.value = `${userData.referral_code}`;
                 }
                 if (referralInputSection) {
                     referralInputSection.style.display = (userData.referred_by === null) ? 'block' : 'none';
